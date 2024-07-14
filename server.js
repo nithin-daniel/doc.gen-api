@@ -2,6 +2,7 @@
 require('dotenv').config();
 
 const express = require('express');
+const serverless = require("serverless-http");
 const app = express();
 app.disable('x-powered-by');
 
@@ -12,6 +13,8 @@ const routes = require('./routes');
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use("/.netlify/functions/app", router);
+
 
 app.use('/', routes);
 
@@ -35,3 +38,6 @@ app.use((err, req, res, next) => {
 app.listen((process.env.PORT || 3000), () => {
     console.log(`\n--- Server listening on port ${process.env.PORT || 3000}`)
 });
+
+
+module.exports.handler = serverless(app);
