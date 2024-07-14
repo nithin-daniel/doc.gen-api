@@ -14,7 +14,8 @@ const routes = require('./routes');
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
+const multer  = require('multer')
+const upload = multer({ dest: 'uploads/' })
 
 app.use('/', routes);
 
