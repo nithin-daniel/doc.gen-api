@@ -28,7 +28,7 @@ async function run(event_name, event_date, event_time, event_organizing_club, st
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = await response.text();
-    console.log(text);
+    // console.log(text);
 
     // Save the response to a Markdown file
     fs.writeFile('response.md', text, (err) => {
@@ -240,6 +240,7 @@ async function run(event_name, event_date, event_time, event_organizing_club, st
             console.log('HTML report saved to report.html');
         }
     });
+    return data;
 }
 
 module.exports = run;

@@ -1,12 +1,32 @@
 ## README Report
 
-**Event/Program Name:** Authentic Tech Master 
-**Date:** 24 - 08 - 2024  
-**Time:** 10:00 AM - 4:00 PM  
-**Organizing Department/Club/Cell:** Inovus Labs IEDC 
-**Total Student Participants:** 100 Students 
-**Total Faculty Participants:** 0 (No faculty participants)  
-**Mode of Event (Online/Offline):** Offline  
-**Faculty Coordinator:** Roji Thomas  
-**Brief Event/Program Description:**  The Authentic Tech Master was a national-level hackathon dedicated to fostering software development skills among students.  Participants were challenged to collaborate and create innovative solutions within a limited timeframe, utilizing their programming expertise and creativity. The event provided a dynamic environment for students to push their boundaries, experiment with cutting-edge technologies, and gain valuable experience in real-world software development scenarios. 
-**Program Outcome:** The hackathon proved highly successful in empowering students with advanced software technology skills. Participants engaged in intense brainstorming sessions, collaborative coding, and rigorous debugging, leading to the development of impressive projects. The event not only honed their technical capabilities but also boosted their confidence in presenting their solutions to a panel of judges. The Authentic Tech Master served as a valuable platform for students to showcase their potential and gain recognition for their accomplishments within the software development community. 
+**Event/Program Name:** Authentic Tech Master
+
+**Date:** 24 - 08 - 2024 
+
+**Time:** 10:00 AM - 4:00 PM
+
+**Organizing Department/Club/Cell:** Inovus Labs IEDC
+
+**Total Student Participants:** 100 Students
+
+**Total Faculty Participants:** 0 (No faculty participants)
+
+**Mode of Event (Online/Offline):** Offline
+
+**Faculty Coordinator:** Roji Thomas
+
+**Brief Event/Program Description:** 
+
+The Authentic Tech Master was a National Level Hackathon focused on software development.  The event was designed to challenge participants to utilize their software engineering skills and creativity to solve real-world problems.  Teams of students from various institutions across the country participated, working collaboratively to develop innovative solutions within a limited time frame.
+
+**Program Outcome:**
+
+The hackathon proved to be an extremely valuable learning experience for the participating students.  They were able to:
+
+* **Enhance their software development skills:** The intense nature of the hackathon allowed students to delve deeper into coding techniques, problem-solving strategies, and collaborative development methodologies.
+* **Gain practical experience:**  By tackling real-world problems, participants gained practical insights into how software development can be used to create impactful solutions. 
+* **Boost their confidence:**  Presenting their work at the end of the hackathon provided participants with the opportunity to showcase their abilities and build confidence in their technical skills.  
+* **Network with peers:**  The hackathon provided a platform for students to connect with other passionate individuals in the field of software development, fostering a sense of community and collaboration.  
+
+The success of the Authentic Tech Master solidified its reputation as a prestigious platform for fostering innovation and skill development within the realm of software technology. 
