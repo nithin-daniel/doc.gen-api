@@ -2,35 +2,25 @@ require('dotenv').config();
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const fs = require('fs');
 
-// Load API key from environment variables
-let apiKey = process.env.GEMINI_API;
-console.log('API Key:', apiKey);
+const apiKey = process.env.GEMINI_API;
 
 // Initialize Google Generative AI with the API key
 const genAI = new GoogleGenerativeAI(apiKey);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-// Function to generate the HTML report
-async function run() {
-    // Prompt for generating the report content
-    const prompt = `
-Prompt: Please provide the following details for generating a README report: 
-
-(Event/Program Name: Authentic Tech Master 
-Date: 24 - 08 - 2024 
-Time: 10:00 AM - 4:00 PM 
-Organizing Department/Club/Cell: Inovus Labs IEDC 
-Total Student Participants: 100 Students 
-Total Faculty Participants: 0 (No faculty participants) 
-Mode of Event (Online/Offline): Offline 
-Faculty Coordinator: Roji Thomas 
-Brief Event/Program Description: National Level Hackathon focused on software development. The event was highly successful, with participation from 100 students. 
-Program Outcome: The hackathon provided an excellent opportunity to enhance students' skills in software technology. Additionally, it boosted their confidence in presenting their work.) 
-Feedback: The event was amazing and got the opportunity to explore new things.
-Event Photos: 
-Attendance Sheet:
-
-Don't change the the above format and also use professional sentences and make the program description and outcome more DESCRIPTIVE for that use some gap contents (Only give the proper result only). The descriptive and the feedback contents must need to contain maximum two paragraph.`;
+async function run(event_name, event_date, event_time, event_organizing_club, student_count, faculty_count, event_mode, faculty_cooridinator, event_description, program_outcome) {
+    const prompt = `Please provide the following details for generating a README report: 
+    (Event/Program Name: ${event_name} 
+    Date: ${event_date} 
+    Time: ${event_time} 
+    Organizing Department/Club/Cell:${event_organizing_club} 
+    Total Student Participants:${student_count} 
+    Total Faculty Participants:${faculty_count} 
+    Mode of Event (Online/Offline): ${event_mode}  
+    Faculty Coordinator: ${faculty_cooridinator} 
+    Brief Event/Program Description: ${event_description} 
+    Program Outcome: ${program_outcome} 
+    Don't change the above format and also use professional sentences and make the program description and outcome more DESCRIPTIVE for that use some gap contents (Only give the proper result only).`;
 
     try {
         // Generate content using the generative AI model
@@ -295,4 +285,4 @@ Don't change the the above format and also use professional sentences and make t
     }
 }
 
-run();
+module.exports = run;
