@@ -109,7 +109,7 @@ router.post('/generate',
             const current_url = req.header.host
             const images = {
                 event_photos: req.eventPhotosFileNames.map((filename) => `https://${req.headers.host}/event_photo/${filename}`),
-                event_attendence_photos: req.eventAttendanceFileNames.map((filename) => `https://${req.headers.host}/event_attendece/${filename}`)
+                event_attendence_photos: req.eventAttendanceFileNames.map((filename) => `https://${req.headers.host}/event_photo/${filename}`)
             }
 
             const { event_name, event_date, event_time, event_organizing_club, student_count, faculty_count, event_mode, faculty_cooridinator, event_description, program_outcome } = req.body;
