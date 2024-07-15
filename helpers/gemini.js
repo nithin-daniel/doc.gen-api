@@ -22,12 +22,10 @@ async function run(event_name, event_date, event_time, event_organizing_club, st
     Program Outcome: ${program_outcome} 
     Don't change the above format and also use professional sentences and make the program description and outcome more DESCRIPTIVE for that use some gap contents (Only give the proper result only).`;
 
-    try {
-        // Generate content using the generative AI model
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = await response.text();
-        console.log(text);
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = await response.text();
+    console.log(text);
 
         // Extract data from the generated text using regular expressions
         const extractData = (text, label) => {
@@ -274,15 +272,14 @@ async function run(event_name, event_date, event_time, event_organizing_club, st
             </html>
         `;
 
-        // Generate the HTML content
-        const html = generateHTML(data);
-
-        // Write the generated HTML to a file
-        fs.writeFileSync('report.html', html, 'utf8');
-        console.log('HTML report generated successfully');
-    } catch (error) {
-        console.error('Error generating report:', error);
-    }
+    // Save the HTML template to a file
+    fs.writeFile('report.html', htmlTemplate, (err) => {
+        if (err) {
+            console.error('Error writing to file:', err);
+        } else {
+            console.log('HTML report saved to report.html');
+        }
+    });
 }
 
 module.exports = run;
