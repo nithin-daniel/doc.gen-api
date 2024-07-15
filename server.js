@@ -15,7 +15,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 const multer  = require('multer')
-const upload = multer({ dest: 'uploads/' })
+
+app.use('/event_photo', express.static('event_photos_uploads'));
+app.use('/event_attendece', express.static('event_attendence_uploads'));
+
 
 app.use('/', routes);
 
