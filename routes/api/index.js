@@ -103,22 +103,31 @@ router.post('/generate',
         { name: 'event_attendence_photos', maxCount: 6 }
     ]),
     async (req, res, next) => {
-        console.log('Uploaded files - Event Photos:', req.eventPhotosFileNames);
-        console.log('Uploaded files - Event Attendance Photos:', req.eventAttendanceFileNames);
-        const current_url = req.header.host
-        const images = {
-            event_photos: req.eventPhotosFileNames.map((filename) => `https://${req.headers.host}/event_photo/${filename}`),
-            event_attendence_photos: req.eventAttendanceFileNames.map((filename) => `https://${req.headers.host}/event_attendece/${filename}`)
+        try {
+            // console.log('Uploaded files - Event Photos:', req.eventPhotosFileNames);
+            // console.log('Uploaded files - Event Attendance Photos:', req.eventAttendanceFileNames);
+            const current_url = req.header.host
+            const images = {
+                event_photos: req.eventPhotosFileNames.map((filename) => `https://${req.headers.host}/event_photo/${filename}`),
+                event_attendence_photos: req.eventAttendanceFileNames.map((filename) => `https://${req.headers.host}/event_attendece/${filename}`)
+            }
+
+            const { event_name, event_date, event_time, event_organizing_club, student_count, faculty_count, event_mode, faculty_cooridinator, event_description, program_outcome } = req.body;
+            let data = await run(event_name, event_date, event_time, event_organizing_club, student_count, faculty_count, event_mode, faculty_cooridinator, event_description, program_outcome, req.eventAttendanceFileNames, req.eventAttendanceFileNames)
+            res.json({
+                status: 200,
+                message: 'API is working properly',
+                data: data,
+                images: images
+            });
+        } catch (err) {
+            return res.status(400).json({
+                status: 400,
+                message: 'Error creating user',
+                error: err
+            })
         }
-        
-    const { event_name, event_date, event_time, event_organizing_club, student_count, faculty_count, event_mode, faculty_cooridinator, event_description, program_outcome } = req.body;
-    let data = await run(event_name, event_date, event_time, event_organizing_club, student_count, faculty_count, event_mode, faculty_cooridinator, event_description, program_outcome, req.eventAttendanceFileNames, req.eventAttendanceFileNames)
-    res.json({
-        status: 200,
-        message: 'API is working properly',
-        data: data,
-        images:images
-    });
+
     });
 
 // Error handling middleware for Multer
