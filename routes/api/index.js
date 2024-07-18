@@ -3,6 +3,8 @@ const run = require('../../helpers/gemini')
 const express = require('express');
 const router = express.Router();
 const multer = require('multer')
+const slugify = require('slugify');
+
 // const upload = multer({ dest: 'uploads/' })
 
 const event_photos = multer.diskStorage({
@@ -75,12 +77,20 @@ const event_attendence_upload = multer({ storage: event_attendence });
 //         });
 //     });
 
+const generateSlug = (filename) => {
+    const name = filename.split('.').slice(0, -1).join('.');
+    return slugify(name, { lower: true, strict: true });
+};
+
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, 'event_photos_uploads/');
     },
     filename: (req, file, cb) => {
-        const filename = Date.now() + '-' + file.originalname;
+        const slug = generateSlug(file.originalname);
+        const extension = file.originalname.split('.').pop();
+        const filename = `${Date.now()}-${slug}.${extension}`;
+
         if (file.fieldname === 'event_photos') {
             if (!req.eventPhotosFileNames) {
                 req.eventPhotosFileNames = [];
@@ -91,6 +101,11 @@ const storage = multer.diskStorage({
                 req.eventAttendanceFileNames = [];
             }
             req.eventAttendanceFileNames.push(filename);
+        } else if (file.fieldname === 'event_poster') {
+            if (!req.eventPosterFileNames) {
+                req.eventPosterFileNames = [];
+            }
+            req.eventPosterFileNames.push(filename);
         }
         cb(null, filename);
     },
@@ -100,7 +115,8 @@ const upload = multer({ storage: storage });
 router.post('/generate',
     upload.fields([
         { name: 'event_photos', maxCount: 6 },
-        { name: 'event_attendence_photos', maxCount: 6 }
+        { name: 'event_attendence_photos', maxCount: 6 },
+        { name: 'event_poster', maxCount: 6 }
     ]),
     async (req, res, next) => {
         try {
@@ -109,11 +125,12 @@ router.post('/generate',
             const current_url = req.header.host
             const images = {
                 event_photos: req.eventPhotosFileNames.map((filename) => `https://${req.headers.host}/event_photo/${filename}`),
-                event_attendence_photos: req.eventAttendanceFileNames.map((filename) => `https://${req.headers.host}/event_photo/${filename}`)
+                event_attendence_photos: req.eventAttendanceFileNames.map((filename) => `https://${req.headers.host}/event_photo/${filename}`),
+                event_poster: req.eventPosterFileNames.map((filename) => `https://${req.headers.host}/event_photo/${filename}`)
             }
 
-            const { event_name, event_date, event_time, event_organizing_club, student_count, faculty_count, event_mode, faculty_cooridinator, event_description, program_outcome } = req.body;
-            let data = await run(event_name, event_date, event_time, event_organizing_club, student_count, faculty_count, event_mode, faculty_cooridinator, event_description, program_outcome, req.eventAttendanceFileNames, req.eventAttendanceFileNames)
+            const { event_name, event_date, event_time, event_organizing_club, student_count, faculty_count, event_mode, faculty_cooridinator, event_description, program_outcome, event_feedback } = req.body;
+            let data = await run(event_name, event_date, event_time, event_organizing_club, student_count, faculty_count, event_mode, faculty_cooridinator, event_description, program_outcome, event_feedback, req.eventAttendanceFileNames, req.eventAttendanceFileNames)
             res.json({
                 status: 200,
                 message: 'API is working properly',
@@ -123,8 +140,8 @@ router.post('/generate',
         } catch (err) {
             return res.status(400).json({
                 status: 400,
-                message: 'Error creating user',
-                error: err
+                message: 'Something Went Wrong',
+                error: err.message
             })
         }
 

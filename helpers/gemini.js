@@ -8,7 +8,7 @@ const apiKey = process.env.GEMINI_API;
 const genAI = new GoogleGenerativeAI(apiKey);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-async function run(event_name, event_date, event_time, event_organizing_club, student_count, faculty_count, event_mode, faculty_cooridinator, event_description, program_outcome) {
+async function run(event_name, event_date, event_time, event_organizing_club, student_count, faculty_count, event_mode, faculty_cooridinator, event_description, program_outcome,event_feedback) {
     const prompt = `Please provide the following details for generating a README report: 
     (Event/Program Name: ${event_name} 
     Date: ${event_date} 
@@ -19,7 +19,8 @@ async function run(event_name, event_date, event_time, event_organizing_club, st
     Mode of Event (Online/Offline): ${event_mode}  
     Faculty Coordinator: ${faculty_cooridinator} 
     Brief Event/Program Description: ${event_description} 
-    Program Outcome: ${program_outcome} 
+    Program Outcome: ${program_outcome}
+    Feedback:${event_feedback} 
     Don't change the above format and also use professional sentences and make the program description and outcome more DESCRIPTIVE for that use some gap contents (Only give the proper result only).`;
 
     const result = await model.generateContent(prompt);
