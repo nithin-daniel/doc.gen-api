@@ -112,8 +112,8 @@ router.post('/generate',
                 event_attendence_photos: req.eventAttendanceFileNames.map((filename) => `https://${req.headers.host}/event_photo/${filename}`)
             }
 
-            const { event_name, event_date, event_time, event_organizing_club, student_count, faculty_count, event_mode, faculty_cooridinator, event_description, program_outcome } = req.body;
-            let data = await run(event_name, event_date, event_time, event_organizing_club, student_count, faculty_count, event_mode, faculty_cooridinator, event_description, program_outcome, req.eventAttendanceFileNames, req.eventAttendanceFileNames)
+            const { event_name, event_date, event_time, event_organizing_club, student_count, faculty_count, event_mode, faculty_cooridinator, event_description, program_outcome, event_feedback } = req.body;
+            let data = await run(event_name, event_date, event_time, event_organizing_club, student_count, faculty_count, event_mode, faculty_cooridinator, event_description, program_outcome, event_feedback, req.eventAttendanceFileNames, req.eventAttendanceFileNames)
             res.json({
                 status: 200,
                 message: 'API is working properly',
