@@ -4,10 +4,12 @@ const router = express.Router();
 
 
 const api = require('./api');
-// const auth = require('./auth');
+const auth = require('./auth');
 
 
 router.use('/api/v1', api);
+router.use('/auth', auth);
+
 
 
 router.get('/', (req, res) => {
