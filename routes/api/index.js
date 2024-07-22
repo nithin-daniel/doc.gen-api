@@ -1,4 +1,5 @@
 const run = require('../../helpers/gemini')
+const verifyToken = require('../../middleware/authentication');
 
 const express = require('express');
 const router = express.Router();
@@ -112,7 +113,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-router.post('/generate',
+router.post('/generate',verifyToken,
     upload.fields([
         { name: 'event_photos', maxCount: 6 },
         { name: 'event_attendence_photos', maxCount: 6 },
