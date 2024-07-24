@@ -113,40 +113,63 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-router.post('/generate',verifyToken,
-    upload.fields([
-        { name: 'event_photos', maxCount: 6 },
-        { name: 'event_attendence_photos', maxCount: 6 },
-        { name: 'event_poster', maxCount: 6 }
-    ]),
-    async (req, res, next) => {
-        try {
-            // console.log('Uploaded files - Event Photos:', req.eventPhotosFileNames);
-            // console.log('Uploaded files - Event Attendance Photos:', req.eventAttendanceFileNames);
-            const current_url = req.header.host
-            const images = {
-                event_photos: req.eventPhotosFileNames.map((filename) => `https://${req.headers.host}/event_photo/${filename}`),
-                event_attendence_photos: req.eventAttendanceFileNames.map((filename) => `https://${req.headers.host}/event_photo/${filename}`),
-                event_poster: req.eventPosterFileNames.map((filename) => `https://${req.headers.host}/event_photo/${filename}`)
-            }
 
-            const { event_name, event_date, event_time, event_organizing_club, student_count, faculty_count, event_mode, faculty_cooridinator, event_description, program_outcome, event_feedback } = req.body;
-            let data = await run(event_name, event_date, event_time, event_organizing_club, student_count, faculty_count, event_mode, faculty_cooridinator, event_description, program_outcome, event_feedback, req.eventAttendanceFileNames, req.eventAttendanceFileNames)
-            res.json({
-                status: 200,
-                message: 'API is working properly',
-                data: data,
-                images: images
-            });
-        } catch (err) {
-            return res.status(400).json({
-                status: 400,
-                message: 'Something Went Wrong',
-                error: err.message
-            })
-        }
 
+router.post('/generate', verifyToken, (req, res, next) => {
+  upload.fields([
+    { name: 'event_photos', maxCount: 6 },
+    { name: 'event_attendence_photos', maxCount: 6 },
+    { name: 'event_poster', maxCount: 6 }
+  ])(req, res, (err) => {
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+        // Ignore this error and continue
+        return next();
+      }
+      return res.status(400).json({ status: 400, message: 'File upload error', error: err.message });
+    } else if (err) {
+      return res.status(500).json({ status: 500, message: 'File upload failed', error: err.message });
+    }
+    next();
+  });
+}, async (req, res) => {
+  try {
+    const current_url = req.headers.host;
+    const images = {
+      event_photos: (req.files['event_photos'] || []).map(file => `https://${current_url}/event_photo/${file.filename}`),
+      event_attendence_photos: (req.files['event_attendence_photos'] || []).map(file => `https://${current_url}/event_photo/${file.filename}`),
+      event_poster: (req.files['event_poster'] || []).map(file => `https://${current_url}/event_photo/${file.filename}`)
+    };
+
+    const { 
+      event_name, event_date, event_time, event_organizing_club, 
+      student_count, faculty_count, event_mode, faculty_cooridinator, 
+      event_description, program_outcome, event_feedback 
+    } = req.body;
+
+    const eventAttendanceFileNames = req.files['event_attendence_photos'] ? req.files['event_attendence_photos'].map(file => file.filename) : [];
+
+    let data = await run(
+      event_name, event_date, event_time, event_organizing_club, 
+      student_count, faculty_count, event_mode, faculty_cooridinator, 
+      event_description, program_outcome, event_feedback, 
+      eventAttendanceFileNames, eventAttendanceFileNames
+    );
+
+    res.json({
+      status: 200,
+      message: 'API is working properly',
+      data: data,
+      images: images
     });
+  } catch (err) {
+    return res.status(400).json({
+      status: 400,
+      message: 'Something Went Wrong',
+      error: err.message
+    });
+  }
+});
 
 // Error handling middleware for Multer
 router.use((err, req, res, next) => {
