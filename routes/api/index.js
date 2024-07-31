@@ -46,38 +46,6 @@ const event_attendence = multer.diskStorage({
 
 const event_attendence_upload = multer({ storage: event_attendence });
 
-// router.post('/generate', event_photos_upload.array('event_photos', 6), event_attendence_upload.array('event_attendence_photos', 6), async (req, res, next) => {
-
-//     console.log('Uploaded files:', req.eventPhotosFileNames);
-//     console.log('Uploaded files:', req.eventAttendanceFileNames);
-
-
-//     // const { event_name, event_date, event_time, event_organizing_club, student_count, faculty_count, event_mode, faculty_cooridinator, event_description, program_outcome } = req.body;
-//     // let data = await run(event_name, event_date, event_time, event_organizing_club, student_count, faculty_count, event_mode, faculty_cooridinator, event_description, program_outcome, req.eventAttendanceFileNames, req.eventAttendanceFileNames)
-//     res.json({
-//         status: 200,
-//         message: 'API is working properly',
-//         // data: data
-//     });
-// });
-// router.post('/generate',
-//     event_photos_upload.array('event_photos', 6), // Handle 'event_photos' field
-//     event_attendence_upload.array('event_attendence_photos', 6), // Handle 'event_attendence_photos' field
-//     async (req, res, next) => {
-//         console.log('Uploaded files - Event Photos:', req.eventPhotosFileNames);
-//         console.log('Uploaded files - Event Attendance Photos:', req.eventAttendanceFileNames);
-
-//         // Handle uploaded files or call functions to process them
-//         // Example:
-//         // const data = await processFiles(req.eventPhotosFileNames, req.eventAttendanceFileNames);
-
-//         res.json({
-//             status: 200,
-//             message: 'Files uploaded successfully',
-//             // data: data // Include any additional data you want to send back
-//         });
-//     });
-
 const generateSlug = (filename) => {
     const name = filename.split('.').slice(0, -1).join('.');
     return slugify(name, { lower: true, strict: true });
@@ -136,6 +104,8 @@ router.post('/generate', verifyToken, (req, res, next) => {
   try {
     const current_url = req.headers.host;
     const images = {
+      kjcmt_header:`https://${current_url}/event_photo/kjcmt-header.png`,
+      kjcmt_footer:`https://${current_url}/event_photo/kjcmt-footer.png`,
       event_photos: (req.files['event_photos'] || []).map(file => `https://${current_url}/event_photo/${file.filename}`),
       event_attendence_photos: (req.files['event_attendence_photos'] || []).map(file => `https://${current_url}/event_photo/${file.filename}`),
       event_poster: (req.files['event_poster'] || []).map(file => `https://${current_url}/event_photo/${file.filename}`)
