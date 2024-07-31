@@ -104,6 +104,8 @@ router.post('/generate', verifyToken, (req, res, next) => {
   try {
     const current_url = req.headers.host;
     const images = {
+      kjcmt_header:`https://${current_url}/event_photo/kjcmt-header.png`,
+      kjcmt_footer:`https://${current_url}/event_photo/kjcmt-footer.png`,
       event_photos: (req.files['event_photos'] || []).map(file => `https://${current_url}/event_photo/${file.filename}`),
       event_attendence_photos: (req.files['event_attendence_photos'] || []).map(file => `https://${current_url}/event_photo/${file.filename}`),
       event_poster: (req.files['event_poster'] || []).map(file => `https://${current_url}/event_photo/${file.filename}`)
