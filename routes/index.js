@@ -6,10 +6,13 @@ const auth = require("./auth");
 
 router.use("/api/v1", api);
 router.use("/auth", auth);
+const path = require('path');
 
 router.get("/html", (req, res) => {
-  res.render("output.html");
+  res.sendFile(path.join(__dirname,'..', 'output.html'));
 });
+
+
 
 router.get("/", (req, res) => {
   res.json({
