@@ -95,21 +95,17 @@ router.post(
           // Ignore this error and continue
           return next();
         }
-        return res
-          .status(400)
-          .json({
-            status: 400,
-            message: "File upload error",
-            error: err.message,
-          });
+        return res.status(400).json({
+          status: 400,
+          message: "File upload error",
+          error: err.message,
+        });
       } else if (err) {
-        return res
-          .status(500)
-          .json({
-            status: 500,
-            message: "File upload failed",
-            error: err.message,
-          });
+        return res.status(500).json({
+          status: 500,
+          message: "File upload failed",
+          error: err.message,
+        });
       }
       next();
     });
@@ -165,7 +161,6 @@ router.post(
         eventAttendanceFileNames
       );
 
-      
       // Extracting data from text
       const extractData = (text, label) => {
         if (typeof text !== "string") {
@@ -191,12 +186,17 @@ router.post(
       const countWords = (str) => {
         return str.trim().split(/\s+/).length;
       };
-      function runFromWeb(readmeData) {
+      async function runFromWeb(geminiData) {
+        let readmeData = JSON.stringify(geminiData);
+        
         try {
-          if (typeof readmeData !== "string") {
-            console.error("readmeData is not a string:", readmeData);
-            readmeData = JSON.stringify(readmeData);
-          }
+          // (async (readmeData) => {
+          //   if (typeof readmeData !== "string") {
+          //     console.error("readmeData is not a string:", readmeData);
+          //     let readmeData = JSON.stringify(readmeData);
+          //     console.log(readmeData);
+          //   }
+          // })();
 
           // Extract data from the README string
           const extractFromReadme = (field) => {
@@ -232,7 +232,7 @@ router.post(
           };
 
           // Generate the HTML content
-          
+
           const html = generateHTML(data);
           return html;
         } catch (error) {
@@ -242,9 +242,9 @@ router.post(
       }
 
       const generateHTML = (data) => {
-        
+        // console.log(data);
+
         const createTableRow = (label, value) => {
-          
           return value
             ? `
               <tr>
@@ -469,14 +469,13 @@ router.post(
                       // foram  
                       ${
                         // data.images &&
-                        event_photos &&
-                        event_photos.length > 0
+                        images.event_photos && images.event_photos.length > 0
                           ? `
                       <tr>
                           <th>Event Photographs</th>
                           <td>
                               <div class="image-grid">
-                            //foram.  ${event_photos
+                            ${images.event_photos
                               .map(
                                 (src) => `<img src="${src}" alt="Event Photo">`
                               )
@@ -490,8 +489,7 @@ router.post(
                       // foram
                       ${
                         // data.images &&
-                        images.event_poster &&
-                        images.event_poster.length > 0
+                        images.event_poster && images.event_poster.length > 0
                           ? `
                       <tr>
                           <th>Event Poster</th>
@@ -561,9 +559,9 @@ router.post(
   </html>
   `;
       };
+
       const html = await runFromWeb(geminiOut);
-      // console.log(html);
-      
+
       var fs = require("fs");
       fs.writeFile("output.html", html, function (err) {
         if (err) {
@@ -572,7 +570,6 @@ router.post(
 
         console.log("The file was saved!");
       });
-      
 
       res.json({
         status: 200,
