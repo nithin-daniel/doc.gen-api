@@ -1,23 +1,21 @@
-
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 
+const api = require("./api");
+const auth = require("./auth");
 
-const api = require('./api');
-const auth = require('./auth');
+router.use("/api/v1", api);
+router.use("/auth", auth);
 
-
-router.use('/api/v1', api);
-router.use('/auth', auth);
-
-
-
-router.get('/', (req, res) => {
-    res.json({
-        status: 200,
-        message: 'API is working properly'
-    });
+router.get("/html", (req, res) => {
+  res.render("output.html");
 });
 
+router.get("/", (req, res) => {
+  res.json({
+    status: 200,
+    message: "API is working properly",
+  });
+});
 
 module.exports = router;

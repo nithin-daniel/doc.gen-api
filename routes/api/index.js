@@ -572,12 +572,13 @@ router.post(
 
         console.log("The file was saved!");
       });
+      
 
       res.json({
         status: 200,
         message: "API is working properly",
         // data: data,
-        images: images,
+        images: html,
       });
     } catch (err) {
       return res.status(400).json({
