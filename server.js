@@ -20,7 +20,7 @@ app.use(express.urlencoded({ extended: true }));
 const multer  = require('multer')
 
 app.use('/event_photo', express.static('event_photos_uploads'));
-app.use('/event_attendece', express.static('event_attendence_uploads'));
+// app.use('/event_attendece', express.static('event_attendence_uploads'));
 
 
 app.use('/', routes);
