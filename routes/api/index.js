@@ -117,13 +117,13 @@ router.post(
         kjcmt_header: `https://${current_url}/event_photo/kjcmt-header.png`,
         kjcmt_footer: `https://${current_url}/event_photo/kjcmt-footer.png`,
         event_photos: (req.files["event_photos"] || []).map(
-          (file) => `https://${current_url}/event_photo/${file.filename}`
+          (file) => `http://${current_url}/event_photo/${file.filename}`
         ),
         event_attendence_photos: (
           req.files["event_attendence_photos"] || []
-        ).map((file) => `https://${current_url}/event_photo/${file.filename}`),
+        ).map((file) => `http://${current_url}/event_photo/${file.filename}`),
         event_poster: (req.files["event_poster"] || []).map(
-          (file) => `https://${current_url}/event_photo/${file.filename}`
+          (file) => `http://${current_url}/event_photo/${file.filename}`
         ),
       };
 
@@ -162,33 +162,33 @@ router.post(
       );
 
       // Extracting data from text
-      const extractData = (text, label) => {
-        if (typeof text !== "string") {
-          console.error(`Expected string for text, but got ${typeof text}`);
-          return "";
-        }
-        const regex = new RegExp(`\\*\\*${label}:\\*\\* ([^\\n]+)`);
-        const match = text.match(regex);
-        return match ? match[1].trim() : "";
-      };
+      // const extractData = (text, label) => {
+      //   if (typeof text !== "string") {
+      //     console.error(`Expected string for text, but got ${typeof text}`);
+      //     return "";
+      //   }
+      //   const regex = new RegExp(`\\*\\*${label}:\\*\\* ([^\\n]+)`);
+      //   const match = text.match(regex);
+      //   return match ? match[1].trim() : "";
+      // };
 
-      const extractMultilineData = (text, label) => {
-        if (typeof text !== "string") {
-          console.error(`Expected string for text, but got ${typeof text}`);
-          return "";
-        }
-        const regex = new RegExp(`\\*\\*${label}:\\*\\*([\\s\\S]*?)(\\*\\*|$)`);
-        const match = text.match(regex);
-        return match ? match[1].trim() : "";
-      };
+      // const extractMultilineData = (text, label) => {
+      //   if (typeof text !== "string") {
+      //     console.error(`Expected string for text, but got ${typeof text}`);
+      //     return "";
+      //   }
+      //   const regex = new RegExp(`\\*\\*${label}:\\*\\*([\\s\\S]*?)(\\*\\*|$)`);
+      //   const match = text.match(regex);
+      //   return match ? match[1].trim() : "";
+      // };
 
       // Function to count words in a string
-      const countWords = (str) => {
-        return str.trim().split(/\s+/).length;
-      };
+      // const countWords = (str) => {
+      //   return str.trim().split(/\s+/).length;
+      // };
       async function runFromWeb(geminiData) {
-        let readmeData = JSON.stringify(geminiData);
-        
+        readmeData = JSON.stringify(geminiData);
+
         try {
           // (async (readmeData) => {
           //   if (typeof readmeData !== "string") {
@@ -232,6 +232,7 @@ router.post(
           };
 
           // Generate the HTML content
+          console.log(data);
 
           const html = generateHTML(data);
           return html;
@@ -242,9 +243,12 @@ router.post(
       }
 
       const generateHTML = (data) => {
-        // console.log(data);
+        console.log(data);
 
         const createTableRow = (label, value) => {
+          // let hello = extractFromReadme(value);
+          // console.log(hello);
+
           return value
             ? `
               <tr>
@@ -256,308 +260,307 @@ router.post(
         };
 
         return `
-  <!DOCTYPE html>
-  <html lang="en">
-  <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Event Report</title>
-     <style>
-          @page {
-              size: A4;
-              margin: 0;
-          }
-          body {
-              font-family: Arial, sans-serif;
-              line-height: 1.6;
-              color: #333;
-              margin: 0;
-              padding: 0;
-              background-color: #f0f0f0;
-          }
-          .page {
-              width: 21cm;
-              height: 29.7cm;
-              margin: auto;
-              padding: 1cm;
-              box-sizing: border-box;
-              position: relative;
-              page-break-after: always;
-              background-color: white;
-              box-shadow: 0 0 10px rgba(0,0,0,0.1);
-          }
-          .page-content {
-              border: 2px solid #000;
-              height: calc(100% - 2cm);
-              padding: 1cm;
-              position: relative;
-          }
-          .page:last-child {
-              page-break-after: auto;
-          }
-          table {
-              width: 100%;
-              border-collapse: collapse;
-          }
-          th, td {
-              border: 1px solid #ddd;
-              padding: 8px;
-              vertical-align: top;
-          }
-          th {
-              background-color: #f2f2f2;
-              font-weight: bold;
-              text-align: left;
-              width: 30%;
-          }
-          .header, .footer {
-              width: calc(100% - 4cm);
-              height: auto;
-              position: absolute;
-              left: 2cm;
-              right: 2cm;
-          }
-          .header {
-              top: 1cm;
-          }
-          .footer {
-              bottom: 1cm;
-          }
-          .content {
-              margin-top: 3cm;
-              margin-bottom: 4cm;
-          }
-          .image-grid {
-              display: grid;
-              grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-              gap: 10px;
-          }
-          .image-grid img {
-              width: 100%;
-              height: auto;
-              object-fit: contain;
-          }
-          .name {
-              text-align: center;
-              font-weight: bold;
-              font-size: 15px;
-              margin-top: 100px;
-              display: flex;
-          }
-          .co {
-              margin-right: 220px;
-              margin-left: 30px;
-          }
-          .cmi {
-              text-align: center;
-              font-weight: bold;
-              font-size: 15px;
-              margin-top: -5px;
-              margin-left: 350px;
-          }
-          @media print {
-              body {
-                  background-color: white;
-              }
-              .page {
-                  margin: 0;
-                  box-shadow: none;
-              }
-              .page-break {
-                  page-break-before: always;
-              }
-          }
-          .event-photos-container {
-              width: 100%;
-              height: 100px;
-              overflow-y: auto;
-              border: 1px solid #ddd;
-          }
-          .event-photos-grid {
-              display: grid;
-              grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-              gap: 10px;
-              padding: 10px;
-          }
-          .event-photos-grid img {
-              width: 100%;
-              height: 100px;
-              object-fit: cover;
-          }
-          .image-grid img,
-          .event-photos-grid img {
-              max-width: 100%;
-              max-height: 150px;
-              object-fit: contain;
-          }
-      </style>
-  </head>
-  <body>
-      <div class="page">
-          <div class="page-content">
-              <img src="https://doc-gen-api.onrender.com/event_photo/kjcmt-header.png" alt="Header" class="header">
-              
-              <div class="content">
-                  <table>
-                      ${createTableRow("Title of Activity", data.eventName)}
-                      ${createTableRow("Date", data.date)}
-                      
-                      ${createTableRow(
-                        "Department/Club/Cell",
-                        data.organizingDept
-                      )}
-                      ${createTableRow(
-                        "Total Student Participants",
-                        data.studentParticipants
-                      )}
-                      ${createTableRow(
-                        "Total Faculty Participants",
-                        data.facultyParticipants
-                      )}
-                      ${createTableRow("Mode of Event", data.mode)}
-                      ${createTableRow("Faculty Coordinator", data.coordinator)}
-                      ${createTableRow("Event Description", data.description)}
-                  </table>
-              </div>
-              
-              <img src="https://doc-gen-api.onrender.com/event_photo/kjcmt-footer.png" alt="Footer" class="footer">
-          </div>
-      </div>
-  
-      <div class="page">
-          <div class="page-content">
-              <img src="https://doc-gen-api.onrender.com/event_photo/kjcmt-header.png" alt="Header" class="header">
-              
-              <div class="content">
-                  <table>
-                      ${
-                        data.speakername ||
-                        data.speakerph ||
-                        data.speakeremail ||
-                        data.speakerdescp
-                          ? `
-                      <tr>
-                          <th>Speaker Information</th>
-                          <td>
-                              ${
-                                data.speakername
-                                  ? `<strong>Name:</strong> ${data.speakername}<br>`
-                                  : ""
+                  <!DOCTYPE html>
+                  <html lang="en">
+                  <head>
+                      <meta charset="UTF-8">
+                      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                      <title>Event Report</title>
+                    <style>
+                          @page {
+                              size: A4;
+                              margin: 0;
+                          }
+                          body {
+                              font-family: Arial, sans-serif;
+                              line-height: 1.6;
+                              color: #333;
+                              margin: 0;
+                              padding: 0;
+                              background-color: #f0f0f0;
+                          }
+                          .page {
+                              width: 21cm;
+                              height: 29.7cm;
+                              margin: auto;
+                              padding: 1cm;
+                              box-sizing: border-box;
+                              position: relative;
+                              page-break-after: always;
+                              background-color: white;
+                              box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                          }
+                          .page-content {
+                              border: 2px solid #000;
+                              height: calc(100% - 2cm);
+                              padding: 1cm;
+                              position: relative;
+                          }
+                          .page:last-child {
+                              page-break-after: auto;
+                          }
+                          table {
+                              width: 100%;
+                              border-collapse: collapse;
+                          }
+                          th, td {
+                              border: 1px solid #ddd;
+                              padding: 8px;
+                              vertical-align: top;
+                          }
+                          th {
+                              background-color: #f2f2f2;
+                              font-weight: bold;
+                              text-align: left;
+                              width: 30%;
+                          }
+                          .header, .footer {
+                              width: calc(100% - 4cm);
+                              height: auto;
+                              position: absolute;
+                              left: 2cm;
+                              right: 2cm;
+                          }
+                          .header {
+                              top: 1cm;
+                          }
+                          .footer {
+                              bottom: 1cm;
+                          }
+                          .content {
+                              margin-top: 3cm;
+                              margin-bottom: 4cm;
+                          }
+                          .image-grid {
+                              display: grid;
+                              grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+                              gap: 10px;
+                          }
+                          .image-grid img {
+                              width: 100%;
+                              height: auto;
+                              object-fit: contain;
+                          }
+                          .name {
+                              text-align: center;
+                              font-weight: bold;
+                              font-size: 15px;
+                              margin-top: 100px;
+                              display: flex;
+                          }
+                          .co {
+                              margin-right: 220px;
+                              margin-left: 30px;
+                          }
+                          .cmi {
+                              text-align: center;
+                              font-weight: bold;
+                              font-size: 15px;
+                              margin-top: -5px;
+                              margin-left: 350px;
+                          }
+                          @media print {
+                              body {
+                                  background-color: white;
                               }
-                              ${
-                                data.speakerph
-                                  ? `<strong>Phone:</strong> ${data.speakerph}<br>`
-                                  : ""
+                              .page {
+                                  margin: 0;
+                                  box-shadow: none;
                               }
-                              ${
-                                data.speakeremail
-                                  ? `<strong>Email:</strong> ${data.speakeremail}<br>`
-                                  : ""
+                              .page-break {
+                                  page-break-before: always;
                               }
-                              ${
-                                data.speakerdescp
-                                  ? `<strong>Description:</strong> ${data.speakerdescp}`
-                                  : ""
-                              }
-                          </td>
-                      </tr>
-                      `
-                          : ""
-                      }
-                      ${createTableRow("Feedback", data.feedback)}
-                      ${createTableRow("Program Outcome", data.outcome)}
-                      // foram  
-                      ${
-                        // data.images &&
-                        images.event_photos && images.event_photos.length > 0
-                          ? `
-                      <tr>
-                          <th>Event Photographs</th>
-                          <td>
-                              <div class="image-grid">
-                            ${images.event_photos
-                              .map(
-                                (src) => `<img src="${src}" alt="Event Photo">`
-                              )
-                              .join("")}
-                              </div>
-                          </td>
-                      </tr>
-                      `
-                          : ""
-                      }
-                      // foram
-                      ${
-                        // data.images &&
-                        images.event_poster && images.event_poster.length > 0
-                          ? `
-                      <tr>
-                          <th>Event Poster</th>
-                          <td>
-                              <div class="image-grid">
+                          }
+                          .event-photos-container {
+                              width: 100%;
+                              height: 100px;
+                              overflow-y: auto;
+                              border: 1px solid #ddd;
+                          }
+                          .event-photos-grid {
+                              display: grid;
+                              grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                              gap: 10px;
+                              padding: 10px;
+                          }
+                          .event-photos-grid img {
+                              width: 100%;
+                              height: 100px;
+                              object-fit: cover;
+                          }
+                          .image-grid img,
+                          .event-photos-grid img {
+                              max-width: 100%;
+                              max-height: 150px;
+                              object-fit: contain;
+                          }
+                      </style>
+                  </head>
+                  <body>
+                      <div class="page">
+                          <div class="page-content">
+                              <img src="https://doc-gen-api.onrender.com/event_photo/kjcmt-header.png" alt="Header" class="header">
                               
-                                  ${images.event_poster
-                                    .map(
-                                      (src) =>
-                                        `<img src="${src}" alt="Event Poster">`
-                                    )
-                                    .join("")}
+                              <div class="content">
+                                  <table>
+                                      ${createTableRow("Title of Activity", data.eventName)}
+                                      ${createTableRow("Date", data.date)}
+                                      
+                                      ${createTableRow(
+                                        "Department/Club/Cell",
+                                        data.organizingDept
+                                      )}
+                                      ${createTableRow(
+                                        "Total Student Participants",
+                                        data.studentParticipants
+                                      )}
+                                      ${createTableRow(
+                                        "Total Faculty Participants",
+                                        data.facultyParticipants
+                                      )}
+                                      ${createTableRow("Mode of Event", data.mode)}
+                                      ${createTableRow("Faculty Coordinator", data.coordinator)}
+                                      ${createTableRow("Event Description", data.description)}
+                                  </table>
                               </div>
-                          </td>
-                      </tr>
+                              
+                              <img src="https://doc-gen-api.onrender.com/event_photo/kjcmt-footer.png" alt="Footer" class="footer">
+                          </div>
+                      </div>
+                  
+                      <div class="page">
+                          <div class="page-content">
+                              <img src="https://doc-gen-api.onrender.com/event_photo/kjcmt-header.png" alt="Header" class="header">
+                              
+                              <div class="content">
+                                  <table>
+                                      ${
+                                        data.speakername ||
+                                        data.speakerph ||
+                                        data.speakeremail ||
+                                        data.speakerdescp
+                                          ? `
+                                      <tr>
+                                          <th>Speaker Information</th>
+                                          <td>
+                                              ${
+                                                data.speakername
+                                                  ? `<strong>Name:</strong> ${data.speakername}<br>`
+                                                  : ""
+                                              }
+                                              ${
+                                                data.speakerph
+                                                  ? `<strong>Phone:</strong> ${data.speakerph}<br>`
+                                                  : ""
+                                              }
+                                              ${
+                                                data.speakeremail
+                                                  ? `<strong>Email:</strong> ${data.speakeremail}<br>`
+                                                  : ""
+                                              }
+                                              ${
+                                                data.speakerdescp
+                                                  ? `<strong>Description:</strong> ${data.speakerdescp}`
+                                                  : ""
+                                              }
+                                          </td>
+                                      </tr>
+                                      `
+                                          : ""
+                                      }
+                                      ${createTableRow("Feedback", data.feedback)}
+                                      ${createTableRow("Program Outcome", data.outcome)}
+                                      // foram  
+                                      ${
+                                        // data.images &&
+                                        images.event_photos && images.event_photos.length > 0
+                                          ? `
+                                      <tr>
+                                          <th>Event Photographs</th>
+                                          <td>
+                                              <div class="image-grid">
+                                            ${images.event_photos
+                                              .map(
+                                                (src) => `<img src="${src}" alt="Event Photo">`
+                                              )
+                                              .join("")}
+                                              </div>
+                                          </td>
+                                      </tr>
+                                      `
+                                          : ""
+                                      }
+                                      // foram
+                                      ${
+                                        // data.images &&
+                                        images.event_poster && images.event_poster.length > 0
+                                          ? `
+                                      <tr>
+                                          <th>Event Poster</th>
+                                          <td>
+                                              <div class="image-grid">
+                                              
+                                                  ${images.event_poster
+                                                    .map(
+                                                      (src) =>
+                                                        `<img src="${src}" alt="Event Poster">`
+                                                    )
+                                                    .join("")}
+                                              </div>
+                                          </td>
+                                      </tr>
+                                      `
+                                          : ""
+                                      }
+                                  </table>
+                              </div>
+                              
+                              <img src="https://doc-gen-api.onrender.com/event_photo/kjcmt-footer.png" alt="Footer" class="footer">
+                          </div>
+                      </div>
+                      //foram
+                      ${
+                        // data.images &&
+                        images.event_attendence_photos &&
+                        images.event_attendence_photos.length > 0
+                          ? `
+                      <div class="page">
+                          <div class="page-content">
+                              <img src="https://doc-gen-api.onrender.com/event_photo/kjcmt-header.png" alt="Header" class="header">
+                              
+                              <div class="content">
+                                  <table>
+                                      <tr>
+                                          <th>Participants List</th>
+                                          <td>
+                                              <div class="image-grid">
+                                                  ${images.event_attendence_photos
+                                                    .map(
+                                                      (src) =>
+                                                        `<img src="${src}" alt="Attendance Sheet">`
+                                                    )
+                                                    .join("")}
+                                              </div>
+                                          </td>
+                                      </tr>
+                                  </table>
+                                  <div class="name">
+                                      <p class="co">Name & Signature of Co-ordinator</p>
+                                      <p>Principal</p>
+                                  </div>
+                                  <div class="cmi">
+                                      Fr. Dr. Joshy George
+                                  </div>
+                              </div>
+                              
+                              <img src="https://doc-gen-api.onrender.com/event_photo/kjcmt-footer.png" alt="Footer" class="footer">
+                          </div>
+                      </div>
                       `
                           : ""
                       }
-                  </table>
-              </div>
-              
-              <img src="https://doc-gen-api.onrender.com/event_photo/kjcmt-footer.png" alt="Footer" class="footer">
-          </div>
-      </div>
-      //foram
-      ${
-        // data.images &&
-        images.event_attendence_photos &&
-        images.event_attendence_photos.length > 0
-          ? `
-      <div class="page">
-          <div class="page-content">
-              <img src="https://doc-gen-api.onrender.com/event_photo/kjcmt-header.png" alt="Header" class="header">
-              
-              <div class="content">
-                  <table>
-                      <tr>
-                          <th>Participants List</th>
-                          <td>
-                              <div class="image-grid">
-                                  ${images.event_attendence_photos
-                                    .map(
-                                      (src) =>
-                                        `<img src="${src}" alt="Attendance Sheet">`
-                                    )
-                                    .join("")}
-                              </div>
-                          </td>
-                      </tr>
-                  </table>
-                  <div class="name">
-                      <p class="co">Name & Signature of Co-ordinator</p>
-                      <p>Principal</p>
-                  </div>
-                  <div class="cmi">
-                      Fr. Dr. Joshy George
-                  </div>
-              </div>
-              
-              <img src="https://doc-gen-api.onrender.com/event_photo/kjcmt-footer.png" alt="Footer" class="footer">
-          </div>
-      </div>
-      `
-          : ""
-      }
-  </body>
-  </html>
-  `;
+                  </body>
+                  </html>`;
       };
 
       const html = await runFromWeb(geminiOut);
