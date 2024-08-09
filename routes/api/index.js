@@ -5,24 +5,101 @@ const path = require("path");
 const fs = require("fs");
 const verifyToken = require("../../middleware/authentication");
 const run = require("../../helpers/gemini");
+const slugify = require("slugify");
 
-// Multer configuration
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    let uploadPath = 'uploads/';
-    if (file.fieldname === 'event_photos') uploadPath += 'event_photos/';
-    else if (file.fieldname === 'event_attendence_photos') uploadPath += 'event_attendence/';
-    else if (file.fieldname === 'event_poster') uploadPath += 'event_poster/';
+// // Multer configuration
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     let uploadPath = 'uploads/';
+//     if (file.fieldname === 'event_photos') uploadPath += 'event_photos/';
+//     else if (file.fieldname === 'event_attendence_photos') uploadPath += 'event_attendence/';
+//     else if (file.fieldname === 'event_poster') uploadPath += 'event_poster/';
     
-    fs.mkdirSync(uploadPath, { recursive: true });
-    cb(null, uploadPath);
+//     fs.mkdirSync(uploadPath, { recursive: true });
+//     cb(null, uploadPath);
+//   },
+//   filename: (req, file, cb) => {
+//     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+//     cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+//   }
+// });
+
+// const upload = multer({ storage: storage });
+
+
+// const upload = multer({ dest: 'uploads/' })
+
+const event_photos = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "event_photos_uploads/");
   },
   filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
+    // Generate the unique filename
+    const filename = Date.now() + "-" + file.originalname;
+
+    // Store the filename in a list (assuming req.fileNames is an array on the request object)
+    if (!req.eventPhotosFileNames) {
+      req.eventPhotosFileNames = [];
+    }
+    req.eventPhotosFileNames.push(filename);
+    cb(null, filename);
+  },
 });
 
+const event_photos_upload = multer({ storage: event_photos });
+
+const event_attendence = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "event_attendence_uploads/");
+  },
+  filename: (req, file, cb) => {
+    // Generate the unique filename
+    const filename = Date.now() + "-" + file.originalname;
+
+    // Store the filename in a list (assuming req.fileNames is an array on the request object)
+    if (!req.eventAttendanceFileNames) {
+      req.eventAttendanceFileNames = [];
+    }
+    req.eventAttendanceFileNames.push(filename);
+    cb(null, filename);
+  },
+});
+
+const event_attendence_upload = multer({ storage: event_attendence });
+
+const generateSlug = (filename) => {
+  const name = filename.split(".").slice(0, -1).join(".");
+  return slugify(name, { lower: true, strict: true });
+};
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "event_photos_uploads/");
+  },
+  filename: (req, file, cb) => {
+    const slug = generateSlug(file.originalname);
+    const extension = file.originalname.split(".").pop();
+    const filename = `${Date.now()}-${slug}.${extension}`;
+
+    if (file.fieldname === "event_photos") {
+      if (!req.eventPhotosFileNames) {
+        req.eventPhotosFileNames = [];
+      }
+      req.eventPhotosFileNames.push(filename);
+    } else if (file.fieldname === "event_attendence_photos") {
+      if (!req.eventAttendanceFileNames) {
+        req.eventAttendanceFileNames = [];
+      }
+      req.eventAttendanceFileNames.push(filename);
+    } else if (file.fieldname === "event_poster") {
+      if (!req.eventPosterFileNames) {
+        req.eventPosterFileNames = [];
+      }
+      req.eventPosterFileNames.push(filename);
+    }
+    cb(null, filename);
+  },
+});
 const upload = multer({ storage: storage });
 
 router.post(
@@ -37,8 +114,8 @@ router.post(
     try {
       const current_url = req.headers.host;
       const images = {
-        kjcmt_header: `https://${current_url}/event_photo/kjcmt-header.png`,
-        kjcmt_footer: `https://${current_url}/event_photo/kjcmt-footer.png`,
+        kjcmt_header: `http://${current_url}/event_photo/kjcmt-header.png`,
+        kjcmt_footer: `http://${current_url}/event_photo/kjcmt-footer.png`,
         event_photos: (req.files["event_photos"] || []).map(
           (file) => `http://${current_url}/event_photo/${file.filename}`
         ),
