@@ -1,261 +1,229 @@
 
-  <!DOCTYPE html>
-  <html lang="en">
-  <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Event Report</title>
-     <style>
-          @page {
-              size: A4;
-              margin: 0;
-          }
-          body {
-              font-family: Arial, sans-serif;
-              line-height: 1.6;
-              color: #333;
-              margin: 0;
-              padding: 0;
-              background-color: #f0f0f0;
-          }
-          .page {
-              width: 21cm;
-              height: 29.7cm;
-              margin: auto;
-              padding: 1cm;
-              box-sizing: border-box;
-              position: relative;
-              page-break-after: always;
-              background-color: white;
-              box-shadow: 0 0 10px rgba(0,0,0,0.1);
-          }
-          .page-content {
-              border: 2px solid #000;
-              height: calc(100% - 2cm);
-              padding: 1cm;
-              position: relative;
-          }
-          .page:last-child {
-              page-break-after: auto;
-          }
-          table {
-              width: 100%;
-              border-collapse: collapse;
-          }
-          th, td {
-              border: 1px solid #ddd;
-              padding: 8px;
-              vertical-align: top;
-          }
-          th {
-              background-color: #f2f2f2;
-              font-weight: bold;
-              text-align: left;
-              width: 30%;
-          }
-          .header, .footer {
-              width: calc(100% - 4cm);
-              height: auto;
-              position: absolute;
-              left: 2cm;
-              right: 2cm;
-          }
-          .header {
-              top: 1cm;
-          }
-          .footer {
-              bottom: 1cm;
-          }
-          .content {
-              margin-top: 3cm;
-              margin-bottom: 4cm;
-          }
-          .image-grid {
-              display: grid;
-              grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-              gap: 10px;
-          }
-          .image-grid img {
-              width: 100%;
-              height: auto;
-              object-fit: contain;
-          }
-          .name {
-              text-align: center;
-              font-weight: bold;
-              font-size: 15px;
-              margin-top: 100px;
-              display: flex;
-          }
-          .co {
-              margin-right: 220px;
-              margin-left: 30px;
-          }
-          .cmi {
-              text-align: center;
-              font-weight: bold;
-              font-size: 15px;
-              margin-top: -5px;
-              margin-left: 350px;
-          }
-          @media print {
-              body {
-                  background-color: white;
-              }
-              .page {
-                  margin: 0;
-                  box-shadow: none;
-              }
-              .page-break {
-                  page-break-before: always;
-              }
-          }
-          .event-photos-container {
-              width: 100%;
-              height: 100px;
-              overflow-y: auto;
-              border: 1px solid #ddd;
-          }
-          .event-photos-grid {
-              display: grid;
-              grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-              gap: 10px;
-              padding: 10px;
-          }
-          .event-photos-grid img {
-              width: 100%;
-              height: 100px;
-              object-fit: cover;
-          }
-          .image-grid img,
-          .event-photos-grid img {
-              max-width: 100%;
-              max-height: 150px;
-              object-fit: contain;
-          }
-      </style>
-  </head>
-  <body>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Event Report</title>
+        <style>
+            @page {
+                size: A4;
+                margin: 0;
+            }
+            body {
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                margin: 0;
+                padding: 0;
+                background-color: #f0f0f0;
+            }
+            .page {
+                width: 21cm;
+                height: 29.7cm;
+                margin: auto;
+                padding: 1cm;
+                box-sizing: border-box;
+                position: relative;
+                page-break-after: always;
+                background-color: white;
+                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            }
+            .page-content {
+                border: 2px solid #000;
+                height: calc(100% - 2cm);
+                padding: 1cm;
+                position: relative;
+            }
+            .page:last-child {
+                page-break-after: auto;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            th, td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                vertical-align: top;
+            }
+            th {
+                background-color: #f2f2f2;
+                font-weight: bold;
+                text-align: left;
+                width: 30%;
+            }
+            .header, .footer {
+                width: calc(100% - 4cm);
+                height: auto;
+                position: absolute;
+                left: 2cm;
+                right: 2cm;
+            }
+            .header {
+                top: 1cm;
+            }
+            .footer {
+                bottom: 1cm;
+            }
+            .content {
+                margin-top: 3cm;
+                margin-bottom: 4cm;
+            }
+            .image-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+                gap: 10px;
+            }
+            .image-grid img {
+                width: 100%;
+                height: auto;
+                object-fit: contain;
+            }
+            .name {
+                text-align: center;
+                font-weight: bold;
+                font-size: 15px;
+                margin-top: 100px;
+                display: flex;
+            }
+            .co {
+                margin-right: 220px;
+                margin-left: 30px;
+            }
+            .cmi {
+                text-align: center;
+                font-weight: bold;
+                font-size: 15px;
+                margin-top: -5px;
+                margin-left: 350px;
+            }
+            @media print {
+                body {
+                    background-color: white;
+                }
+                .page {
+                    margin: 0;
+                    box-shadow: none;
+                }
+                .page-break {
+                    page-break-before: always;
+                }
+            }
+            .event-photos-container {
+                width: 100%;
+                height: 100px;
+                overflow-y: auto;
+                border: 1px solid #ddd;
+            }
+            .event-photos-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                gap: 10px;
+                padding: 10px;
+            }
+            .event-photos-grid img {
+                width: 100%;
+                height: 100px;
+                object-fit: cover;
+            }
+            .image-grid img,
+            .event-photos-grid img {
+                max-width: 100%;
+                max-height: 150px;
+                object-fit: contain;
+            }
+        </style>
+    </head>
+    <body>
+        
       <div class="page">
-          <div class="page-content">
-              <img src="https://doc-gen-api.onrender.com/event_photo/kjcmt-header.png" alt="Header" class="header">
-              
-              <div class="content">
-                  <table>
-                      
-              <tr>
-                  <th>Title of Activity</th>
-                  <td>hello\n\n**Date:** 12-02-2012\n\n**Time:** 10:00pm \n\n**Organizing Department/Club/Cell:** inovus\n\n**Total Student Participants:** 100\n\n**Total Faculty Participants:** 10\n\n**Mode of Event (Online/Offline):** offline\n\n**Faculty Coordinator:** Roji thomas\n\n**Brief Event/Program Description:** \n\nThe \"hello\" event was a captivating [**add specific event type, e.g., workshop, conference, competition**] focused on [**mention the event's theme or area of focus, e.g., sustainability, innovation, technological advancements**].  [**Add details about the event's activities, guest speakers, or any unique aspects.**] The event aimed to [**state the specific objectives of the event, e.g., foster collaboration, raise awareness, provide educational opportunities**].\n\n**Program Outcome:**\n\nThe \"hello\" event was deemed a success, achieving its goals of [**mention specific achievements based on the event objectives, e.g., generating enthusiasm for the theme, providing valuable knowledge and skills, facilitating networking opportunities**]. The positive feedback from both students and faculty highlighted the event's engaging content, inspiring speakers, and well-organized format. [**Add any quantitative data or specific examples to support the outcome, e.g., number of participants who found the event beneficial, successful collaboration between students and faculty**].\n\n**Feedback:**\n\n[**If available, summarize any collected feedback. If feedback was not collected, you can state \"Feedback was not formally collected for this event.\"**]\n"</td>
-              </tr>
-          
-                      
-              <tr>
-                  <th>Date</th>
-                  <td>12-02-2012\n\n**Time:** 10:00pm \n\n**Organizing Department/Club/Cell:** inovus\n\n**Total Student Participants:** 100\n\n**Total Faculty Participants:** 10\n\n**Mode of Event (Online/Offline):** offline\n\n**Faculty Coordinator:** Roji thomas\n\n**Brief Event/Program Description:** \n\nThe \"hello\" event was a captivating [**add specific event type, e.g., workshop, conference, competition**] focused on [**mention the event's theme or area of focus, e.g., sustainability, innovation, technological advancements**].  [**Add details about the event's activities, guest speakers, or any unique aspects.**] The event aimed to [**state the specific objectives of the event, e.g., foster collaboration, raise awareness, provide educational opportunities**].\n\n**Program Outcome:**\n\nThe \"hello\" event was deemed a success, achieving its goals of [**mention specific achievements based on the event objectives, e.g., generating enthusiasm for the theme, providing valuable knowledge and skills, facilitating networking opportunities**]. The positive feedback from both students and faculty highlighted the event's engaging content, inspiring speakers, and well-organized format. [**Add any quantitative data or specific examples to support the outcome, e.g., number of participants who found the event beneficial, successful collaboration between students and faculty**].\n\n**Feedback:**\n\n[**If available, summarize any collected feedback. If feedback was not collected, you can state \"Feedback was not formally collected for this event.\"**]\n"</td>
-              </tr>
-          
-                      
-                      
-              <tr>
-                  <th>Department/Club/Cell</th>
-                  <td>inovus\n\n**Total Student Participants:** 100\n\n**Total Faculty Participants:** 10\n\n**Mode of Event (Online/Offline):** offline\n\n**Faculty Coordinator:** Roji thomas\n\n**Brief Event/Program Description:** \n\nThe \"hello\" event was a captivating [**add specific event type, e.g., workshop, conference, competition**] focused on [**mention the event's theme or area of focus, e.g., sustainability, innovation, technological advancements**].  [**Add details about the event's activities, guest speakers, or any unique aspects.**] The event aimed to [**state the specific objectives of the event, e.g., foster collaboration, raise awareness, provide educational opportunities**].\n\n**Program Outcome:**\n\nThe \"hello\" event was deemed a success, achieving its goals of [**mention specific achievements based on the event objectives, e.g., generating enthusiasm for the theme, providing valuable knowledge and skills, facilitating networking opportunities**]. The positive feedback from both students and faculty highlighted the event's engaging content, inspiring speakers, and well-organized format. [**Add any quantitative data or specific examples to support the outcome, e.g., number of participants who found the event beneficial, successful collaboration between students and faculty**].\n\n**Feedback:**\n\n[**If available, summarize any collected feedback. If feedback was not collected, you can state \"Feedback was not formally collected for this event.\"**]\n"</td>
-              </tr>
-          
-                      
-                      
-                      
-                      
-              <tr>
-                  <th>Faculty Coordinator</th>
-                  <td>Roji thomas\n\n**Brief Event/Program Description:** \n\nThe \"hello\" event was a captivating [**add specific event type, e.g., workshop, conference, competition**] focused on [**mention the event's theme or area of focus, e.g., sustainability, innovation, technological advancements**].  [**Add details about the event's activities, guest speakers, or any unique aspects.**] The event aimed to [**state the specific objectives of the event, e.g., foster collaboration, raise awareness, provide educational opportunities**].\n\n**Program Outcome:**\n\nThe \"hello\" event was deemed a success, achieving its goals of [**mention specific achievements based on the event objectives, e.g., generating enthusiasm for the theme, providing valuable knowledge and skills, facilitating networking opportunities**]. The positive feedback from both students and faculty highlighted the event's engaging content, inspiring speakers, and well-organized format. [**Add any quantitative data or specific examples to support the outcome, e.g., number of participants who found the event beneficial, successful collaboration between students and faculty**].\n\n**Feedback:**\n\n[**If available, summarize any collected feedback. If feedback was not collected, you can state \"Feedback was not formally collected for this event.\"**]\n"</td>
-              </tr>
-          
-                      
-                  </table>
-              </div>
-              
-              <img src="https://doc-gen-api.onrender.com/event_photo/kjcmt-footer.png" alt="Footer" class="footer">
-          </div>
-      </div>
-  
-      <div class="page">
-          <div class="page-content">
-              <img src="https://doc-gen-api.onrender.com/event_photo/kjcmt-header.png" alt="Header" class="header">
-              
-              <div class="content">
-                  <table>
-                      
-                      <tr>
-                          <th>Speaker Information</th>
-                          <td>
-                              <strong>Name:</strong> roji thomas<br>
-                              <strong>Phone:</strong> 1234567890<br>
-                              <strong>Email:</strong> speaker@venue<br>
-                              <strong>Description:</strong> good and majestic speaker
-                          </td>
-                      </tr>
-                      
-                      
-                      
-                      // foram  
-                      
-                      <tr>
-                          <th>Event Photographs</th>
-                          <td>
-                              <div class="image-grid">
-                            <img src="http://127.0.0.1:3000/event_photo/1723051145686-wp2520344-risk-wallpapers.png" alt="Event Photo">
-                              </div>
-                          </td>
-                      </tr>
-                      
-                      // foram
-                      
-                      <tr>
-                          <th>Event Poster</th>
-                          <td>
-                              <div class="image-grid">
-                              
-                                  <img src="http://127.0.0.1:3000/event_photo/1723051145696-my-first-ai-image.png" alt="Event Poster">
-                              </div>
-                          </td>
-                      </tr>
-                      
-                  </table>
-              </div>
-              
-              <img src="https://doc-gen-api.onrender.com/event_photo/kjcmt-footer.png" alt="Footer" class="footer">
-          </div>
-      </div>
-      //foram
+        <div class="page-content">
+          <img src="https://127.0.0.1:3000/event_photo/kjcmt-header.png" alt="Header" class="header">
+          <div class="content">
+            
+    <table>
       
-      <div class="page">
-          <div class="page-content">
-              <img src="https://doc-gen-api.onrender.com/event_photo/kjcmt-header.png" alt="Header" class="header">
-              
-              <div class="content">
-                  <table>
-                      <tr>
-                          <th>Participants List</th>
-                          <td>
-                              <div class="image-grid">
-                                  <img src="http://127.0.0.1:3000/event_photo/1723051145691-wp2520344-risk-wallpapers.png" alt="Attendance Sheet">
-                              </div>
-                          </td>
-                      </tr>
-                  </table>
-                  <div class="name">
-                      <p class="co">Name & Signature of Co-ordinator</p>
-                      <p>Principal</p>
-                  </div>
-                  <div class="cmi">
-                      Fr. Dr. Joshy George
-                  </div>
-              </div>
-              
-              <img src="https://doc-gen-api.onrender.com/event_photo/kjcmt-footer.png" alt="Footer" class="footer">
-          </div>
-      </div>
+      <tr>
+          <th>Title of Activity</th>
+          <td>hello</td>
+      </tr>
+    
       
-  </body>
-  </html>
+      <tr>
+          <th>Date</th>
+          <td>undefined</td>
+      </tr>
+    
+      
+      <tr>
+          <th>Time</th>
+          <td>10:00pm</td>
+      </tr>
+    
+      
+      <tr>
+          <th>Department/Club/Cell</th>
+          <td>inovus</td>
+      </tr>
+    
+      
+      
+      
+      
+      <tr>
+          <th>Faculty Coordinator</th>
+          <td>Roji thomas</td>
+      </tr>
+    
+      
+      <tr>
+          <th>Event Description</th>
+          <td>[Insert a brief description of the event here. The description should be informative and engaging, highlighting the purpose, activities, and key elements of the event. You can use the following as a starting point, but tailor it to the specific details of your event.]
+
+The "hello" event, organized by inovus, was a vibrant and engaging gathering that brought together students and faculty from various disciplines. The event aimed to [State the event's primary objective, e.g., foster collaboration, promote awareness of a particular issue, showcase student talent, etc.].  
+
+The event featured [List the key activities, e.g., workshops, presentations, panel discussions, performances, etc.].  [Provide a brief overview of each activity, highlighting its contribution to the event's overall goals.]
+
+The atmosphere throughout the event was lively and interactive, encouraging participants to actively engage with the program and each other. [You can add specific examples of how the event fostered interaction and engagement.]</td>
+      </tr>
+    
+    </table>
   
+          </div>
+          <img src="https://127.0.0.1:3000/event_photo/kjcmt-footer.png" alt="Footer" class="footer">
+        </div>
+      </div>
+    
+        
+      <div class="page">
+        <div class="page-content">
+          <img src="https://127.0.0.1:3000/event_photo/kjcmt-header.png" alt="Header" class="header">
+          <div class="content">
+            
+    <table>
+      
+      
+      <tr>
+          <th>Feedback</th>
+          <td>The feedback received from both students and faculty was overwhelmingly positive. Participants praised [Highlight specific aspects of the event that were well-received, e.g., engaging speakers, informative workshops, positive atmosphere, etc.].  The event served as a valuable platform for [Summarize the positive impact of the event, e.g., knowledge sharing, skill development, networking, etc.].</td>
+      </tr>
+    
+      
+      <tr>
+          <th>Program Outcome</th>
+          <td>The "hello" event was a resounding success, achieving its objectives and exceeding expectations. [Elaborate on the specific achievements of the event. Quantify the impact wherever possible, e.g., number of students who participated in workshops, positive feedback received, etc.]</td>
+      </tr>
+    
+      
+      
+    </table>
+  
+          </div>
+          <img src="https://127.0.0.1:3000/event_photo/kjcmt-footer.png" alt="Footer" class="footer">
+        </div>
+      </div>
+    
+        
+    </body>
+    </html>             
