@@ -150,7 +150,7 @@ router.post(
       const extractedData = extractDataFromGeminiOutput(geminiOut);
       const html = generateHTML(extractedData, images);
 
-      const puppeteer = require("puppeteer");
+      // const puppeteer = require("puppeteer");
 
       async function createPDF() {
         // const browser = await puppeteer.launch();
