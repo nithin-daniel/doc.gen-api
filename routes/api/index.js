@@ -171,28 +171,43 @@ router.post(
     }
   }
 );
-
 function extractDataFromGeminiOutput(geminiOut) {
   console.log(geminiOut);
+  
+  const processText = (text) => {
+    // Convert asterisk bullet points to HTML unordered list
+    text = text.replace(/^\s*\*\s*/gm, '<li>');
+    if (text.includes('<li>')) {
+      text = '<ul>' + text + '</ul>';
+    }
+    text = text.replace(/<\/li><li>/g, '</li>\n<li>');
+    text = text.replace(/<li>(.*?)<\/li>/g, '<li>$1</li>');
+    
+    // Convert double asterisks to bold HTML tags
+    text = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+    
+    return text.trim();
+  };
   
   const extract = (field) => {
     const regex = new RegExp(`\\*\\*${field}:\\*\\*\\s*([^\\n]+)`);
     const match = geminiOut.match(regex);
-    return match ? match[1].trim() : "";
+    return match ? processText(match[1]) : "";
   };
-
+  
   const extractMultiline = (field) => {
     const regex = new RegExp(`\\*\\*${field}:\\*\\*\\s*([\\s\\S]*?)(?=\\n\\n\\*\\*|$)`);
     const match = geminiOut.match(regex);
-    return match ? match[1].trim() : "";
+    return match ? processText(match[1]) : "";
   };
+  
   return {
     eventName: extract("Event/Program Name"),
     date: extract("Date"),
     time: extract("Time"),
     organizingDept: extract("Organizing Department/Club/Cell"),
-    studentParticipants: extract("Students"),
-    facultyParticipants: extract("Faculty"),
+    studentParticipants: extract("Total Student Participants"),
+    facultyParticipants: extract("Total Faculty Participants"),
     mode: extract("Mode of Event"),
     coordinator: extract("Faculty Coordinator"),
     description: extractMultiline("Brief Event/Program Description"),
@@ -204,7 +219,6 @@ function extractDataFromGeminiOutput(geminiOut) {
     speakerDescription: extractMultiline("Speaker Description")
   };
 }
-
 function generateHTML(data, images) {
   const createTableRow = (label, value) => {
     if (value == null || value === '') return ''; // Skip if value is null, undefined, or empty string
@@ -264,9 +278,19 @@ function generateHTML(data, images) {
       ${createTableRow("Total Faculty Participants", data.facultyParticipants)}
       ${createTableRow("Mode of Event", data.mode)}
       ${createTableRow("Faculty Coordinator", data.coordinator)}
-      ${createTableRow("Event Description", data.description)}
-    </table>
+
+${data.description && data.description.length < 800 ? `${createTableRow("Event Description", data.description)}`: ''}   
+ </table>
   `;
+
+  const createDescriptionPage = (description) => {
+    if (!description || description.length < 800) return '';
+    return createPage(`
+      <table>
+      ${createTableRow("Event Description", data.description)}
+      </table>
+      `);
+  };
 
   const additionalInfo = `
     <table>
@@ -284,7 +308,7 @@ function generateHTML(data, images) {
           <td>${createImageGrid(images.event_photos, "Event Photo")}</td>
         </tr>
       ` : ''}
-      ${images.event_poster && images.event_poster.length > 0 ? `
+      ${images.event_photos && images.event_photos.length <= 3 && images.event_poster && images.event_poster.length > 0 ? `
         <tr>
           <th>Event Poster</th>
           <td>${createImageGrid(images.event_poster, "Event Poster")}</td>
@@ -295,6 +319,12 @@ function generateHTML(data, images) {
 
   const attendanceList = images.event_attendence_photos && images.event_attendence_photos.length > 0 ? `
     <table>
+    ${images.event_photos && images.event_photos.length > 3 && images.event_poster && images.event_poster.length > 0 ? `
+      <tr>
+        <th>Event Poster</th>
+        <td>${createImageGrid(images.event_poster, "Event Poster")}</td>
+      </tr>
+    ` : ''}
       <tr>
         <th>Participants List</th>
         <td>${createImageGrid(images.event_attendence_photos, "Attendance Sheet")}</td>
@@ -448,6 +478,7 @@ function generateHTML(data, images) {
     </head>
     <body>
         ${createPage(mainInfo)}
+            ${createDescriptionPage(data.description)}
         ${createPage(additionalInfo)}
         ${createPage(attendanceList)}
     </body>
