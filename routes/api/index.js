@@ -163,7 +163,7 @@ router.post(
         await browser.close();
       }
 
-      createPDF();
+      await createPDF();
 
       var data = fs.readFileSync("output/" + req.body.event_name + ".pdf");
       res.contentType("application/pdf");
