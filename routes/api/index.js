@@ -165,20 +165,9 @@ router.post(
 
       createPDF();
 
-      // Save HTML to file (optional)
-      fs.writeFile("output.html", html, function (err) {
-        if (err) {
-          console.error("Error saving HTML file:", err);
-        } else {
-          console.log("The HTML file was saved!");
-        }
-      });
-
-      res.json({
-        status: 200,
-        message: "Report generated successfully",
-        html: `https://${current_url}/pdf/${req.body.event_name}.pdf`,
-      });
+      var data = fs.readFileSync("output/" + req.body.event_name + ".pdf");
+      res.contentType("application/pdf");
+      res.send(data);
     } catch (err) {
       console.error("Error generating report:", err);
       res.status(500).json({
