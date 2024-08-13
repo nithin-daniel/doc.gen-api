@@ -153,14 +153,6 @@ router.post(
       // const puppeteer = require("puppeteer");
 
       async function createPDF() {
-        // const browser = await puppeteer.launch();
-        // const page = await browser.newPage();
-        // await page.setContent(html);
-        // await page.pdf({
-        //   path: "output/" + req.body.event_name + ".pdf",
-        //   format: "A4",
-        // });
-        // await browser.close();
         const pdf = require("html-pdf");
         // const html = "<b>Hello world</b>";
 
