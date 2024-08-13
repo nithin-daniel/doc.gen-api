@@ -14,7 +14,7 @@ const slugify = require("slugify");
 //     if (file.fieldname === 'event_photos') uploadPath += 'event_photos/';
 //     else if (file.fieldname === 'event_attendence_photos') uploadPath += 'event_attendence/';
 //     else if (file.fieldname === 'event_poster') uploadPath += 'event_poster/';
-    
+
 //     fs.mkdirSync(uploadPath, { recursive: true });
 //     cb(null, uploadPath);
 //   },
@@ -25,7 +25,6 @@ const slugify = require("slugify");
 // });
 
 // const upload = multer({ storage: storage });
-
 
 // const upload = multer({ dest: 'uploads/' })
 
@@ -114,16 +113,16 @@ router.post(
     try {
       const current_url = req.headers.host;
       const images = {
-        kjcmt_header: `http://${current_url}/event_photo/kjcmt-header.png`,
-        kjcmt_footer: `http://${current_url}/event_photo/kjcmt-footer.png`,
+        kjcmt_header: `https://${current_url}/event_photo/kjcmt-header.png`,
+        kjcmt_footer: `https://${current_url}/event_photo/kjcmt-footer.png`,
         event_photos: (req.files["event_photos"] || []).map(
-          (file) => `http://${current_url}/event_photo/${file.filename}`
+          (file) => `https://${current_url}/event_photo/${file.filename}`
         ),
-        event_attendence_photos: (req.files["event_attendence_photos"] || []).map(
-          (file) => `http://${current_url}/event_photo/${file.filename}`
-        ),
+        event_attendence_photos: (
+          req.files["event_attendence_photos"] || []
+        ).map((file) => `https://${current_url}/event_photo/${file.filename}`),
         event_poster: (req.files["event_poster"] || []).map(
-          (file) => `http://${current_url}/event_photo/${file.filename}`
+          (file) => `https://${current_url}/event_photo/${file.filename}`
         ),
       };
 
@@ -140,12 +139,31 @@ router.post(
         req.body.event_description,
         req.body.program_outcome,
         req.body.event_feedback,
-        req.files["event_attendence_photos"] ? req.files["event_attendence_photos"].map(file => file.filename) : [],
-        req.files["event_attendence_photos"] ? req.files["event_attendence_photos"].map(file => file.filename) : []
+        req.files["event_attendence_photos"]
+          ? req.files["event_attendence_photos"].map((file) => file.filename)
+          : [],
+        req.files["event_attendence_photos"]
+          ? req.files["event_attendence_photos"].map((file) => file.filename)
+          : []
       );
 
       const extractedData = extractDataFromGeminiOutput(geminiOut);
       const html = generateHTML(extractedData, images);
+
+      const puppeteer = require("puppeteer");
+
+      async function createPDF() {
+        const browser = await puppeteer.launch();
+        const page = await browser.newPage();
+        await page.setContent(html);
+        await page.pdf({
+          path: "output/" + req.body.event_name + ".pdf",
+          format: "A4",
+        });
+        await browser.close();
+      }
+
+      createPDF();
 
       // Save HTML to file (optional)
       fs.writeFile("output.html", html, function (err) {
@@ -159,7 +177,7 @@ router.post(
       res.json({
         status: 200,
         message: "Report generated successfully",
-        html: html,
+        html: `https://${current_url}/pdf/${req.body.event_name}.pdf`,
       });
     } catch (err) {
       console.error("Error generating report:", err);
@@ -172,35 +190,35 @@ router.post(
   }
 );
 function extractDataFromGeminiOutput(geminiOut) {
-  console.log(geminiOut);
-  
   const processText = (text) => {
     // Convert asterisk bullet points to HTML unordered list
-    text = text.replace(/^\s*\*\s*/gm, '<li>');
-    if (text.includes('<li>')) {
-      text = '<ul>' + text + '</ul>';
+    text = text.replace(/^\s*\*\s*/gm, "<li>");
+    if (text.includes("<li>")) {
+      text = "<ul>" + text + "</ul>";
     }
-    text = text.replace(/<\/li><li>/g, '</li>\n<li>');
-    text = text.replace(/<li>(.*?)<\/li>/g, '<li>$1</li>');
-    
+    text = text.replace(/<\/li><li>/g, "</li>\n<li>");
+    text = text.replace(/<li>(.*?)<\/li>/g, "<li>$1</li>");
+
     // Convert double asterisks to bold HTML tags
-    text = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-    
+    text = text.replace(/\*\*(.*?)\*\*/g, "<b>$1</b>");
+
     return text.trim();
   };
-  
+
   const extract = (field) => {
     const regex = new RegExp(`\\*\\*${field}:\\*\\*\\s*([^\\n]+)`);
     const match = geminiOut.match(regex);
     return match ? processText(match[1]) : "";
   };
-  
+
   const extractMultiline = (field) => {
-    const regex = new RegExp(`\\*\\*${field}:\\*\\*\\s*([\\s\\S]*?)(?=\\n\\n\\*\\*|$)`);
+    const regex = new RegExp(
+      `\\*\\*${field}:\\*\\*\\s*([\\s\\S]*?)(?=\\n\\n\\*\\*|$)`
+    );
     const match = geminiOut.match(regex);
     return match ? processText(match[1]) : "";
   };
-  
+
   return {
     eventName: extract("Event/Program Name"),
     date: extract("Date"),
@@ -216,12 +234,12 @@ function extractDataFromGeminiOutput(geminiOut) {
     speakerName: extract("Speaker Name"),
     speakerPhone: extract("Speaker Phone"),
     speakerEmail: extract("Speaker Email"),
-    speakerDescription: extractMultiline("Speaker Description")
+    speakerDescription: extractMultiline("Speaker Description"),
   };
 }
 function generateHTML(data, images) {
   const createTableRow = (label, value) => {
-    if (value == null || value === '') return ''; // Skip if value is null, undefined, or empty string
+    if (value == null || value === "") return ""; // Skip if value is null, undefined, or empty string
     return `
       <tr>
           <th>${label}</th>
@@ -231,20 +249,21 @@ function generateHTML(data, images) {
   };
 
   const createImageGrid = (images, altText) => {
-    if (!images || images.length === 0) return '';
+    if (!images || images.length === 0) return "";
     return `
       <div class="image-grid">
-          ${images.map(src => `<img src="${src}" alt="${altText}">`).join('')}
+          ${images.map((src) => `<img src="${src}" alt="${altText}">`).join("")}
       </div>
     `;
   };
 
   const createSpeakerInfo = (speaker) => {
-    if (!speaker.name) return '';
+    if (!speaker.name) return "";
     let info = `<strong>Name:</strong> ${speaker.name}<br>`;
     if (speaker.phone) info += `<strong>Phone:</strong> ${speaker.phone}<br>`;
     if (speaker.email) info += `<strong>Email:</strong> ${speaker.email}<br>`;
-    if (speaker.description) info += `<strong>Description:</strong> ${speaker.description}`;
+    if (speaker.description)
+      info += `<strong>Description:</strong> ${speaker.description}`;
     return `
       <tr>
         <th>Speaker Information</th>
@@ -254,7 +273,7 @@ function generateHTML(data, images) {
   };
 
   const createPage = (content) => {
-    if (!content.trim()) return ''; // Skip empty pages
+    if (!content.trim()) return ""; // Skip empty pages
     return `
       <div class="page">
         <div class="page-content">
@@ -279,12 +298,16 @@ function generateHTML(data, images) {
       ${createTableRow("Mode of Event", data.mode)}
       ${createTableRow("Faculty Coordinator", data.coordinator)}
 
-${data.description && data.description.length < 800 ? `${createTableRow("Event Description", data.description)}`: ''}   
+${
+  data.description && data.description.length < 800
+    ? `${createTableRow("Event Description", data.description)}`
+    : ""
+}   
  </table>
   `;
 
   const createDescriptionPage = (description) => {
-    if (!description || description.length < 800) return '';
+    if (!description || description.length < 800) return "";
     return createPage(`
       <table>
       ${createTableRow("Event Description", data.description)}
@@ -298,36 +321,59 @@ ${data.description && data.description.length < 800 ? `${createTableRow("Event D
         name: data.speakerName,
         phone: data.speakerPhone,
         email: data.speakerEmail,
-        description: data.speakerDescription
+        description: data.speakerDescription,
       })}
       ${createTableRow("Feedback", data.feedback)}
       ${createTableRow("Program Outcome", data.outcome)}
-      ${images.event_photos && images.event_photos.length > 0 ? `
+      ${
+        images.event_photos && images.event_photos.length > 0
+          ? `
         <tr>
           <th>Event Photographs</th>
           <td>${createImageGrid(images.event_photos, "Event Photo")}</td>
         </tr>
-      ` : ''}
-      ${images.event_photos && images.event_photos.length <= 3 && images.event_poster && images.event_poster.length > 0 ? `
+      `
+          : ""
+      }
+      ${
+        images.event_photos &&
+        images.event_photos.length <= 3 &&
+        images.event_poster &&
+        images.event_poster.length > 0
+          ? `
         <tr>
           <th>Event Poster</th>
           <td>${createImageGrid(images.event_poster, "Event Poster")}</td>
         </tr>
-      ` : ''}
+      `
+          : ""
+      }
     </table>
   `;
 
-  const attendanceList = images.event_attendence_photos && images.event_attendence_photos.length > 0 ? `
+  const attendanceList =
+    images.event_attendence_photos && images.event_attendence_photos.length > 0
+      ? `
     <table>
-    ${images.event_photos && images.event_photos.length > 3 && images.event_poster && images.event_poster.length > 0 ? `
+    ${
+      images.event_photos &&
+      images.event_photos.length > 3 &&
+      images.event_poster &&
+      images.event_poster.length > 0
+        ? `
       <tr>
         <th>Event Poster</th>
         <td>${createImageGrid(images.event_poster, "Event Poster")}</td>
       </tr>
-    ` : ''}
+    `
+        : ""
+    }
       <tr>
         <th>Participants List</th>
-        <td>${createImageGrid(images.event_attendence_photos, "Attendance Sheet")}</td>
+        <td>${createImageGrid(
+          images.event_attendence_photos,
+          "Attendance Sheet"
+        )}</td>
       </tr>
     </table>
     <div class="name">
@@ -337,7 +383,8 @@ ${data.description && data.description.length < 800 ? `${createTableRow("Event D
     <div class="cmi">
       Fr. Dr. Joshy George
     </div>
-  ` : '';
+  `
+      : "";
 
   return `
     <!DOCTYPE html>
