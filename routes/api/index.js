@@ -152,23 +152,27 @@ router.post(
 
       // const puppeteer = require("puppeteer");
 
-      async function createPDF() {
-        const pdf = require("html-pdf");
-        // const html = "<b>Hello world</b>";
+      // async function createPDF() {
+      // const browser = await puppeteer.launch();
+      // const page = await browser.newPage();
+      // await page.setContent(html);
+      // await page.pdf({
+      //   path: "output/" + req.body.event_name + ".pdf",
+      //   format: "A4",
+      // });
+      // await browser.close();
+      // const { jsPDF } = require("jspdf");
+      // const doc = new jsPDF();
 
-        pdf
-          .create(html, { format: "A4" })
-          .toFile("output/" + req.body.event_name + ".pdf", (err, res) => {
-            if (err) return console.log(err);
-            console.log(res);
-          });
-      }
+      // doc.text(html, 10, 10);
+      // doc.save("output/" + req.body.event_name + ".pdf");
+      // }
 
-      await createPDF();
+      // await createPDF();
 
-      var data = fs.readFileSync("output/" + req.body.event_name + ".pdf");
-      res.contentType("application/pdf");
-      res.send(data);
+      // var data = fs.readFileSync("output/" + req.body.event_name + ".pdf");
+      // res.contentType("application/pdf");
+      res.send(html);
     } catch (err) {
       console.error("Error generating report:", err);
       res.status(500).json({
