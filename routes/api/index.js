@@ -108,6 +108,11 @@ router.post(
     { name: "event_photos", maxCount: 6 },
     { name: "event_attendence_photos", maxCount: 6 },
     { name: "event_poster", maxCount: 6 },
+    { name: "speaker_image", maxCount: 4 },
+    { name: "program_sheet", maxCount: 2 },
+    { name: "lor", maxCount: 2 },
+    { name: "participant_certificate", maxCount: 6 },
+    ,
   ]),
   async (req, res) => {
     try {
@@ -124,6 +129,18 @@ router.post(
         event_poster: (req.files["event_poster"] || []).map(
           (file) => `https://${current_url}/event_photo/${file.filename}`
         ),
+        speaker_image: (req.files["speaker_image"] || []).map(
+          (file) => `https://${current_url}/event_photo/${file.filename}`
+        ),
+        program_sheet: (req.files["program_sheet"] || []).map(
+          (file) => `https://${current_url}/event_photo/${file.filename}`
+        ),
+        lor: (req.files["lor"] || []).map(
+          (file) => `https://${current_url}/event_photo/${file.filename}`
+        ),
+        participant_certificate: (
+          req.files["participant_certificate"] || []
+        ).map((file) => `https://${current_url}/event_photo/${file.filename}`),
       };
 
       // Generate AI content
@@ -146,8 +163,16 @@ router.post(
           ? req.files["event_attendence_photos"].map((file) => file.filename)
           : []
       );
-
-      const extractedData = extractDataFromGeminiOutput(geminiOut);
+      const speaker_details = [
+        (speakerName = req.body.speaker_name),
+        (speakerPhone = req.body.phone_number),
+        (speakerEmail = req.body.speaker_email),
+        (speakerDescription = req.body.speaker_description),
+      ];
+      const extractedData = extractDataFromGeminiOutput(
+        geminiOut,
+        speaker_details
+      );
       const html = generateHTML(extractedData, images);
 
       // const puppeteer = require("puppeteer");
@@ -183,7 +208,7 @@ router.post(
     }
   }
 );
-function extractDataFromGeminiOutput(geminiOut) {
+function extractDataFromGeminiOutput(geminiOut, speaker_details) {
   const processText = (text) => {
     // Convert asterisk bullet points to HTML unordered list
     text = text.replace(/^\s*\*\s*/gm, "<li>");
@@ -225,10 +250,11 @@ function extractDataFromGeminiOutput(geminiOut) {
     description: extractMultiline("Brief Event/Program Description"),
     outcome: extractMultiline("Program Outcome"),
     feedback: extractMultiline("Feedback"),
-    speakerName: extract("Speaker Name"),
-    speakerPhone: extract("Speaker Phone"),
-    speakerEmail: extract("Speaker Email"),
-    speakerDescription: extractMultiline("Speaker Description"),
+    // speakerName: extract("Speaker Name"),
+    speakerName: speaker_details.speakerName,
+    speakerPhone: speaker_details.speakerPhone,
+    speakerEmail: speaker_details.speakerEmail,
+    speakerDescription: speaker_details.speakerDescription,
   };
 }
 function generateHTML(data, images) {
