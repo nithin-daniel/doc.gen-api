@@ -1,282 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
 
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Event Report</title>
-        <style>
-            @page {
-                size: A4;
-                margin: 0;
-            }
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Report</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+
+        .page {
+            width: 21cm;
+            height: 29.7cm;
+            margin: auto;
+            padding: 1cm;
+            box-sizing: border-box;
+            position: relative;
+            page-break-after: always;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .page-content {
+            border: 2px solid #000;
+            height: calc(100% - 2cm);
+            padding: 1cm;
+            position: relative;
+        }
+
+        .page:last-child {
+            page-break-after: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            vertical-align: top;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+            text-align: left;
+            width: 30%;
+        }
+
+        .header,
+        .footer {
+            width: calc(100% - 4cm);
+            height: auto;
+            position: absolute;
+            left: 2cm;
+            right: 2cm;
+        }
+
+        .header {
+            top: 1cm;
+        }
+
+        .footer {
+            bottom: 1cm;
+        }
+
+        .content {
+            margin-top: 3cm;
+            margin-bottom: 4cm;
+        }
+
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+        }
+
+        .image-grid img {
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+        }
+
+        .name {
+            text-align: center;
+            font-weight: bold;
+            font-size: 15px;
+            margin-top: 100px;
+            display: flex;
+        }
+
+        .co {
+            margin-right: 220px;
+            margin-left: 30px;
+        }
+
+        .cmi {
+            text-align: center;
+            font-weight: bold;
+            font-size: 15px;
+            margin-top: -5px;
+            margin-left: 350px;
+        }
+
+        @media print {
             body {
-                font-family: Arial, sans-serif;
-                line-height: 1.6;
-                color: #333;
-                margin: 0;
-                padding: 0;
-                background-color: #f0f0f0;
-            }
-            .page {
-                width: 21cm;
-                height: 29.7cm;
-                margin: auto;
-                padding: 1cm;
-                box-sizing: border-box;
-                position: relative;
-                page-break-after: always;
                 background-color: white;
-                box-shadow: 0 0 10px rgba(0,0,0,0.1);
             }
-            .page-content {
-                border: 2px solid #000;
-                height: calc(100% - 2cm);
-                padding: 1cm;
-                position: relative;
+
+            .page {
+                margin: 0;
+                box-shadow: none;
             }
-            .page:last-child {
-                page-break-after: auto;
+
+            .page-break {
+                page-break-before: always;
             }
-            table {
-                width: 100%;
-                border-collapse: collapse;
-            }
-            th, td {
-                border: 1px solid #ddd;
-                padding: 8px;
-                vertical-align: top;
-            }
-            th {
-                background-color: #f2f2f2;
-                font-weight: bold;
-                text-align: left;
-                width: 30%;
-            }
-            .header, .footer {
-                width: calc(100% - 4cm);
-                height: auto;
-                position: absolute;
-                left: 2cm;
-                right: 2cm;
-            }
-            .header {
-                top: 1cm;
-            }
-            .footer {
-                bottom: 1cm;
-            }
-            .content {
-                margin-top: 3cm;
-                margin-bottom: 4cm;
-            }
-            .image-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-                gap: 10px;
-            }
-            .image-grid img {
-                width: 100%;
-                height: auto;
-                object-fit: contain;
-            }
-            .name {
-                text-align: center;
-                font-weight: bold;
-                font-size: 15px;
-                margin-top: 100px;
-                display: flex;
-            }
-            .co {
-                margin-right: 220px;
-                margin-left: 30px;
-            }
-            .cmi {
-                text-align: center;
-                font-weight: bold;
-                font-size: 15px;
-                margin-top: -5px;
-                margin-left: 350px;
-            }
-            @media print {
-                body {
-                    background-color: white;
-                }
-                .page {
-                    margin: 0;
-                    box-shadow: none;
-                }
-                .page-break {
-                    page-break-before: always;
-                }
-            }
-            .event-photos-container {
-                width: 100%;
-                height: 100px;
-                overflow-y: auto;
-                border: 1px solid #ddd;
-            }
-            .event-photos-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-                gap: 10px;
-                padding: 10px;
-            }
-            .event-photos-grid img {
-                width: 100%;
-                height: 100px;
-                object-fit: cover;
-            }
-            .image-grid img,
-            .event-photos-grid img {
-                max-width: 100%;
-                max-height: 150px;
-                object-fit: contain;
-            }
-        </style>
-    </head>
-    <body>
-        
-      <div class="page">
+        }
+
+        .event-photos-container {
+            width: 100%;
+            height: 100px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+        }
+
+        .event-photos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            padding: 10px;
+        }
+
+        .event-photos-grid img {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+        }
+
+        .image-grid img,
+        .event-photos-grid img {
+            max-width: 100%;
+            max-height: 150px;
+            object-fit: contain;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="page">
         <div class="page-content">
-          <img src="https://127.0.0.1:3000/event_photo/kjcmt-header.png" alt="Header" class="header">
-          <div class="content">
-            
-    <table>
-      
-      <tr>
-          <th>Title of Activity</th>
-          <td>hellojgkjhkjh</td>
-      </tr>
-    
-      
-      <tr>
-          <th>Date</th>
-          <td>12-02-2012</td>
-      </tr>
-    
-      
-      <tr>
-          <th>Time</th>
-          <td>10:00pm</td>
-      </tr>
-    
-      
-      <tr>
-          <th>Department/Club/Cell</th>
-          <td>inovus</td>
-      </tr>
-    
-      
-      <tr>
-          <th>Total Student Participants</th>
-          <td>100</td>
-      </tr>
-    
-      
-      <tr>
-          <th>Total Faculty Participants</th>
-          <td>10</td>
-      </tr>
-    
-      
-      
-      <tr>
-          <th>Faculty Coordinator</th>
-          <td>Roji thomas</td>
-      </tr>
-    
+            <img src="http://127.0.0.1:3000/event_photo/kjcmt-header.png" alt="Header" class="header">
+            <div class="content">
+
+                <table>
+
+                    <tr>
+                        <th>Title of Activity</th>
+                        <td>Hello World</td>
+                    </tr>
 
 
-      <tr>
-          <th>Event Description</th>
-          <td>The "hellojgkjhkjh" event was a [briefly describe the event type, e.g., workshop, competition, seminar].  The event focused on [mention the core theme or objective]. It provided participants with an opportunity to [mention the benefits or learning outcomes, e.g., learn about, develop skills in, engage with]. [Add a specific activity or highlight of the event, e.g., The event featured a series of guest lectures by renowned professionals, or A hands-on coding challenge allowed participants to test their problem-solving skills].</td>
-      </tr>
-       
- </table>
-  
-          </div>
-          <img src="https://127.0.0.1:3000/event_photo/kjcmt-footer.png" alt="Footer" class="footer">
+                    <tr>
+                        <th>Date</th>
+                        <td>12-02-2012</td>
+                    </tr>
+
+
+                    <tr>
+                        <th>Department/Club/Cell</th>
+                        <td>Inovus</td>
+                    </tr>
+
+
+                    <tr>
+                        <th>Total Student Participants</th>
+                        <td>100</td>
+                    </tr>
+
+
+                    <tr>
+                        <th>Total Faculty Participants</th>
+                        <td>10</td>
+                    </tr>
+
+
+
+                    <tr>
+                        <th>Faculty Coordinator</th>
+                        <td>Roji Thomas</td>
+                    </tr>
+
+
+                    <tr>
+                        <th>Speaker Information</th>
+                        <td><strong>Photo:</strong>
+                            <div class="image-grid">
+                                <img src="http://127.0.0.1:3000/event_photo/1723930661411-whatsapp-image-2023-02-07-at-10308-pm.jpeg" alt="Speaker Image">
+                            </div>
+                            <br><strong>Name:</strong> Badhusha<br><strong>Phone:</strong>
+                            9946971423<br><strong>Email:</strong> badhusha.shhaji22@gmail.com<br>
+                        </td>
+                    </tr>
+
+
+
+                </table>
+
+            </div>
+            <img src="http://127.0.0.1:3000/event_photo/kjcmt-footer.png" alt="Footer" class="footer">
         </div>
-      </div>
-    
-            
-        
-      <div class="page">
-        <div class="page-content">
-          <img src="https://127.0.0.1:3000/event_photo/kjcmt-header.png" alt="Header" class="header">
-          <div class="content">
-            
-    <table>
-      
-      
-      <tr>
-          <th>Feedback</th>
-          <td>[If feedback is available, summarize the key points. If not, state "Feedback is currently unavailable."]</td>
-      </tr>
-    
-      
-      <tr>
-          <th>Program Outcome</th>
-          <td>The event was a resounding success.  Participants engaged actively in the various activities and expressed positive feedback on the [mention specific aspects, e.g., learning experience, guest speakers, workshops]. The event achieved its objectives of [mention the specific objectives that were met, e.g., raising awareness, fostering collaboration, promoting skill development]. The overall atmosphere was [describe the atmosphere, e.g., enthusiastic, collaborative, engaging].</td>
-      </tr>
-    
-      
-        <tr>
-          <th>Event Photographs</th>
-          <td>
-      <div class="image-grid">
-          <img src="https://127.0.0.1:3000/event_photo/1723556631199-my-first-ai-image.png" alt="Event Photo">
-      </div>
-    </td>
-        </tr>
-      
-      
-        <tr>
-          <th>Event Poster</th>
-          <td>
-      <div class="image-grid">
-          <img src="https://127.0.0.1:3000/event_photo/1723556631250-wp2520344-risk-wallpapers.png" alt="Event Poster">
-      </div>
-    </td>
-        </tr>
-      
-    </table>
-  
-          </div>
-          <img src="https://127.0.0.1:3000/event_photo/kjcmt-footer.png" alt="Footer" class="footer">
-        </div>
-      </div>
-    
-        
-      <div class="page">
-        <div class="page-content">
-          <img src="https://127.0.0.1:3000/event_photo/kjcmt-header.png" alt="Header" class="header">
-          <div class="content">
-            
-    <table>
-    
-      <tr>
-        <th>Participants List</th>
-        <td>
-      <div class="image-grid">
-          <img src="https://127.0.0.1:3000/event_photo/1723556631244-wp2520344-risk-wallpapers.png" alt="Attendance Sheet">
-      </div>
-    </td>
-      </tr>
-    </table>
-    <div class="name">
-      <p class="co">Name & Signature of Co-ordinator</p>
-      <p>Principal</p>
     </div>
-    <div class="cmi">
-      Fr. Dr. Joshy George
-    </div>
-  
-          </div>
-          <img src="https://127.0.0.1:3000/event_photo/kjcmt-footer.png" alt="Footer" class="footer">
+
+
+    <div class="page">
+        <div class="page-content">
+            <img src="http://127.0.0.1:3000/event_photo/kjcmt-header.png" alt="Header" class="header">
+            <div class="content">
+                <table>
+
+                    <tr>
+                        <th>Speaker Description</th>
+                        <td>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has
+                            been the industry's standard dummy text ever since the 1500s, when an unknown printer took a
+                            galley of type and scrambled it to make a type specimen book. It has survived not only five
+                            centuries, but also the leap into electronic typesetting, remaining essentially unchanged.
+                            It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum
+                            passages, and more recently with desktop publishing software like Aldus PageMaker including
+                            versions of Lorem Ipsum.</td>
+                    </tr>
+
+
+                    <tr>
+                        <th>Event Description</th>
+                        <td>
+                            <ul>The "Hello World" workshop aimed to introduce students to the fundamentals of
+                                programming by guiding them through the creation of their first program, the classic
+                                "Hello World" output. The workshop provided a hands-on learning experience, covering
+                                basic syntax, variable declaration, and input/output operations.
+                                <li>*Program Outcome:** Through engaging exercises and expert guidance, all participants
+                                    successfully completed the "Hello World" program, gaining a foundational
+                                    understanding of programming concepts and a sense of accomplishment in their first
+                                    coding endeavor.
+                                <li>*Feedback:** The workshop received positive feedback, with participants praising the
+                                    clear explanations, interactive format, and supportive environment.
+                            </ul>
+                        </td>
+                    </tr>
+
+                </table>
+
+            </div>
+            <img src="http://127.0.0.1:3000/event_photo/kjcmt-footer.png" alt="Footer" class="footer">
         </div>
-      </div>
-    
-    </body>
-    </html>
+    </div>
+
+
+
+    <div class="page">
+        <div class="page-content">
+            <img src="http://127.0.0.1:3000/event_photo/kjcmt-header.png" alt="Header" class="header">
+            <div class="content">
+
+                <table>
+
+
+
+                    <tr>
+                        <th>Feedback</th>
+                        <td>The workshop received positive feedback, with participants praising the clear explanations,
+                            interactive format, and supportive environment.</td>
+                    </tr>
+
+
+                    <tr>
+                        <th>Program Outcome</th>
+                        <td>
+                            <ul>Through engaging exercises and expert guidance, all participants successfully completed
+                                the "Hello World" program, gaining a foundational understanding of programming concepts
+                                and a sense of accomplishment in their first coding endeavor.
+                                <li>*Feedback:** The workshop received positive feedback, with participants praising the
+                                    clear explanations, interactive format, and supportive environment.
+                            </ul>
+                        </td>
+                    </tr>
+
+
+                    <tr>
+                        <th>Event Photographs</th>
+                        <td>
+                            <div class="image-grid">
+                                <img src="http://127.0.0.1:3000/event_photo/1723930661363-968342-desktop-wallpaper-quotes-1920x1080-mobile.jpg" alt="Event Photo">
+                            </div>
+                        </td>
+                    </tr>
+
+
+                    <tr>
+                        <th>Event Poster</th>
+                        <td>
+                            <div class="image-grid">
+                                <img src="http://127.0.0.1:3000/event_photo/1723930661407-968342-desktop-wallpaper-quotes-1920x1080-mobile.jpg" alt="Event Poster">
+                            </div>
+                        </td>
+                    </tr>
+
+                </table>
+
+            </div>
+            <img src="http://127.0.0.1:3000/event_photo/kjcmt-footer.png" alt="Footer" class="footer">
+        </div>
+    </div>
+
+
+    <div class="page">
+        <div class="page-content">
+            <img src="http://127.0.0.1:3000/event_photo/kjcmt-header.png" alt="Header" class="header">
+            <div class="content">
+                <table>
+                    <tr>
+                        <th>Participants Certificate</th>
+                        <td>
+                            <div class="image-grid">
+                                <img src="http://127.0.0.1:3000/event_photo/1723930661432-whatsapp-image-2023-02-07-at-10320-pm-1.jpeg" alt="Participants Certificate"><img src="http://127.0.0.1:3000/event_photo/1723930661435-gang.jpeg" alt="Participants Certificate">
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th>LOR/LOA</th>
+                        <td>
+                            <div class="image-grid">
+                                <img src="http://127.0.0.1:3000/event_photo/1723930661422-whatsapp-image-2023-02-07-at-10309-pm.jpeg" alt="LOR/LOA"><img src="http://127.0.0.1:3000/event_photo/1723930661425-whatsapp-image-2023-02-07-at-10304-pm-copy.jpeg" alt="LOR/LOA">
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th>Program Sheet</th>
+                        <td>
+                            <div class="image-grid">
+                                <img src="http://127.0.0.1:3000/event_photo/1723930661415-slide-169-4.png" alt="Program Sheet"><img src="http://127.0.0.1:3000/event_photo/1723930661419-968342-desktop-wallpaper-quotes-1920x1080-mobile-copy-2.jpg" alt="Program Sheet">
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th>Participants List</th>
+                        <td>
+                            <div class="image-grid">
+                                <img src="http://127.0.0.1:3000/event_photo/1723930661367-968342-desktop-wallpaper-quotes-1920x1080-mobile.jpg" alt="Participants List"><img src="http://127.0.0.1:3000/event_photo/1723930661369-gang.jpeg" alt="Participants List"><img src="http://127.0.0.1:3000/event_photo/1723930661373-slide-169-4-copy.png" alt="Participants List"><img src="http://127.0.0.1:3000/event_photo/1723930661382-slide-169-4.png" alt="Participants List"><img src="http://127.0.0.1:3000/event_photo/1723930661387-whatsapp-image-2023-02-07-at-10304-pm-copy-copy.jpeg" alt="Participants List"><img src="http://127.0.0.1:3000/event_photo/1723930661391-whatsapp-image-2023-02-07-at-10304-pm-copy.jpeg" alt="Participants List">
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <img src="http://127.0.0.1:3000/event_photo/kjcmt-footer.png" alt="Footer" class="footer">
+        </div>
+    </div>
+
+
+    <div class="page">
+        <div class="page-content">
+            <img src="http://127.0.0.1:3000/event_photo/kjcmt-header.png" alt="Header" class="header">
+            <div class="content">
+
+                <div class="name">
+                    <p class="co">Name & Signature of Co-ordinator</p>
+                    <p>Principal</p>
+                </div>
+                <div class="cmi">
+                    Fr. Dr. Joshy George
+                </div>
+
+            </div>
+            <img src="http://127.0.0.1:3000/event_photo/kjcmt-footer.png" alt="Footer" class="footer">
+        </div>
+    </div>
+
+
+</body>
+
+</html>
