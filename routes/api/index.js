@@ -6,6 +6,7 @@ const fs = require("fs");
 const verifyToken = require("../../middleware/authentication");
 const run = require("../../helpers/gemini");
 const slugify = require("slugify");
+
 const { Reports } = require("../../models/users");
 
 // // Multer configuration
@@ -112,7 +113,7 @@ router.post(
     { name: "speaker_image", maxCount: 4 },
     { name: "program_sheet", maxCount: 2 },
     { name: "lor", maxCount: 2 },
-    { name: "participant_certificate", maxCount: 6 },
+    { name: "participant_certificate", maxCount: 2 },
     ,
   ]),
   async (req, res) => {
@@ -124,29 +125,29 @@ router.post(
       });
       await report_data.save();
       const images = {
-        kjcmt_header: `https://${current_url}/event_photo/kjcmt-header.png`,
-        kjcmt_footer: `https://${current_url}/event_photo/kjcmt-footer.png`,
+        kjcmt_header: `http://${current_url}/event_photo/kjcmt-header.png`,
+        kjcmt_footer: `http://${current_url}/event_photo/kjcmt-footer.png`,
         event_photos: (req.files["event_photos"] || []).map(
-          (file) => `https://${current_url}/event_photo/${file.filename}`
+          (file) => `http://${current_url}/event_photo/${file.filename}`
         ),
         event_attendence_photos: (
           req.files["event_attendence_photos"] || []
-        ).map((file) => `https://${current_url}/event_photo/${file.filename}`),
+        ).map((file) => `http://${current_url}/event_photo/${file.filename}`),
         event_poster: (req.files["event_poster"] || []).map(
-          (file) => `https://${current_url}/event_photo/${file.filename}`
+          (file) => `http://${current_url}/event_photo/${file.filename}`
         ),
         speaker_image: (req.files["speaker_image"] || []).map(
-          (file) => `https://${current_url}/event_photo/${file.filename}`
+          (file) => `http://${current_url}/event_photo/${file.filename}`
         ),
         program_sheet: (req.files["program_sheet"] || []).map(
-          (file) => `https://${current_url}/event_photo/${file.filename}`
+          (file) => `http://${current_url}/event_photo/${file.filename}`
         ),
         lor: (req.files["lor"] || []).map(
-          (file) => `https://${current_url}/event_photo/${file.filename}`
+          (file) => `http://${current_url}/event_photo/${file.filename}`
         ),
         participant_certificate: (
           req.files["participant_certificate"] || []
-        ).map((file) => `https://${current_url}/event_photo/${file.filename}`),
+        ).map((file) => `http://${current_url}/event_photo/${file.filename}`),
       };
 
       // Generate AI content
@@ -169,12 +170,16 @@ router.post(
           ? req.files["event_attendence_photos"].map((file) => file.filename)
           : []
       );
+      
       const speaker_details = [
         (speakerName = req.body.speaker_name),
         (speakerPhone = req.body.phone_number),
         (speakerEmail = req.body.speaker_email),
         (speakerDescription = req.body.speaker_description),
       ];
+
+      
+
       const extractedData = extractDataFromGeminiOutput(
         geminiOut,
         speaker_details
@@ -243,7 +248,6 @@ function extractDataFromGeminiOutput(geminiOut, speaker_details) {
     const match = geminiOut.match(regex);
     return match ? processText(match[1]) : "";
   };
-
   return {
     eventName: extract("Event/Program Name"),
     date: extract("Date"),
@@ -257,13 +261,16 @@ function extractDataFromGeminiOutput(geminiOut, speaker_details) {
     outcome: extractMultiline("Program Outcome"),
     feedback: extractMultiline("Feedback"),
     // speakerName: extract("Speaker Name"),
-    speakerName: speaker_details.speakerName,
-    speakerPhone: speaker_details.speakerPhone,
-    speakerEmail: speaker_details.speakerEmail,
-    speakerDescription: speaker_details.speakerDescription,
+    speakerName: speaker_details[0],
+    speakerPhone: speaker_details[1],
+    speakerEmail: speaker_details[2],
+    speakerDescription: speaker_details[3],    
   };
 }
 function generateHTML(data, images) {
+
+
+
   const createTableRow = (label, value) => {
     if (value == null || value === "") return ""; // Skip if value is null, undefined, or empty string
     return `
@@ -283,13 +290,31 @@ function generateHTML(data, images) {
     `;
   };
 
+  
+  const aliging = (data) =>{ 
+    if(data.speakerDescription.length > 100){
+      return `
+      <table>
+      ${createTableRow("Speaker Description", data.speakerDescription)}
+      </table>
+      `
+    }
+    
+  }
   const createSpeakerInfo = (speaker) => {
+    console.log("Speaker data in createSpeakerInfo:", speaker); // Log for debugging
+
     if (!speaker.name) return "";
-    let info = `<strong>Name:</strong> ${speaker.name}<br>`;
+
+    let info = "";
+    if (images.speaker_image && images.speaker_image.length > 0) {
+      info += `<strong>Photo:</strong> ${createImageGrid(images.speaker_image, "Speaker Image")}<br>`;
+    }
+    if (speaker.name) info += `<strong>Name:</strong> ${speaker.name}<br>`;
     if (speaker.phone) info += `<strong>Phone:</strong> ${speaker.phone}<br>`;
     if (speaker.email) info += `<strong>Email:</strong> ${speaker.email}<br>`;
-    if (speaker.description)
-      info += `<strong>Description:</strong> ${speaker.description}`;
+    if (speaker.description.length < 100) info += `<strong>Description:</strong> ${speaker.description}`;
+
     return `
       <tr>
         <th>Speaker Information</th>
@@ -298,6 +323,19 @@ function generateHTML(data, images) {
     `;
   };
 
+
+  const eventdick = (data) => {
+    const wordCount = data.description.split(/\s+/).length;
+    const hasSpeaker = data.speakerName || data.speakerPhone || data.speakerEmail || data.speakerDescription;
+    
+    if (!hasSpeaker && wordCount <= 700) {
+      return createTableRow("Event Description", data.description);
+    }
+    return "";
+  };
+  const isSpeakerPresent = (speaker) => {
+    return speaker.name || speaker.phone || speaker.email || speaker.description;
+  };
   const createPage = (content) => {
     if (!content.trim()) return ""; // Skip empty pages
     return `
@@ -317,38 +355,50 @@ function generateHTML(data, images) {
     <table>
       ${createTableRow("Title of Activity", data.eventName)}
       ${createTableRow("Date", data.date)}
-      ${createTableRow("Time", data.time)}
       ${createTableRow("Department/Club/Cell", data.organizingDept)}
       ${createTableRow("Total Student Participants", data.studentParticipants)}
       ${createTableRow("Total Faculty Participants", data.facultyParticipants)}
       ${createTableRow("Mode of Event", data.mode)}
       ${createTableRow("Faculty Coordinator", data.coordinator)}
-
-${
-  data.description && data.description.length < 800
-    ? `${createTableRow("Event Description", data.description)}`
-    : ""
-}   
- </table>
-  `;
-
-  const createDescriptionPage = (description) => {
-    if (!description || description.length < 800) return "";
-    return createPage(`
-      <table>
-      ${createTableRow("Event Description", data.description)}
-      </table>
-      `);
-  };
-
-  const additionalInfo = `
-    <table>
       ${createSpeakerInfo({
         name: data.speakerName,
         phone: data.speakerPhone,
         email: data.speakerEmail,
         description: data.speakerDescription,
       })}
+     
+${
+  eventdick(data)
+}   
+ </table>
+  `;
+
+
+  
+  const createDescriptionPage = (description, speakerDescription) => {
+    if (description.length < 700 && speakerDescription.length <= 100) return "";
+    return `
+    <div class="page">
+        <div class="page-content">
+          <img src="${images.kjcmt_header}" alt="Header" class="header">
+          <div class="content">
+          <table>
+          ${speakerDescription.length > 100 ? createTableRow("Speaker Description", speakerDescription) : ""}
+              ${createTableRow("Event Description", description)}
+            </table>
+            
+          </div>
+          <img src="${images.kjcmt_footer}" alt="Footer" class="footer">
+        </div>
+      </div> 
+    
+    `;
+  };
+
+  const additionalInfo = `
+    <table>
+    
+       
       ${createTableRow("Feedback", data.feedback)}
       ${createTableRow("Program Outcome", data.outcome)}
       ${
@@ -377,8 +427,51 @@ ${
     </table>
   `;
 
+  const createDocumentPages = (images) => {
+    const documents = [
+      { name: "Participants Certificate", images: images.participant_certificate },
+      { name: "LOR/LOA", images: images.lor },
+      { name: "Program Sheet", images: images.program_sheet },
+      { name: "Participants List", images: images.event_attendence_photos }
+    ].filter(doc => doc.images && doc.images.length > 0);
+  
+    let pageContent = `<table>`;
+    documents.forEach(doc => {
+      pageContent += createDocumentSection(doc);
+    });
+    pageContent += `</table>`;
+  
+    return pageContent;
+  };
+
+  const createDocumentSection = (document) => {
+    if (!document) return '';
+    return `
+      <tr>
+        <th>${document.name}</th>
+        <td>${createImageGrid(document.images, document.name)}</td>
+      </tr>
+    `;
+  };
+
+  const signatureSection = `
+    <div class="name">
+      <p class="co">Name & Signature of Co-ordinator</p>
+      <p>Principal</p>
+    </div>
+    <div class="cmi">
+      Fr. Dr. Joshy George
+    </div>
+  `;
+
+
+// ----------------------------------------------
+// ---------------------------------------------------------------------------------------------------------------------------------
+// -----------------------------------------------
   const attendanceList =
-    images.event_attendence_photos && images.event_attendence_photos.length > 0
+    images.event_attendence_photos && images.event_attendence_photos.length > 0 || images.program_sheet &&
+    images.program_sheet.length > 0 || images.participant_certificate &&
+    images.participant_certificate.length > 0 
       ? `
     <table>
     ${
@@ -394,23 +487,94 @@ ${
     `
         : ""
     }
+    ${
+      images.event_attendence_photos &&
+      images.event_attendence_photos.length > 0
+        ? `
       <tr>
         <th>Participants List</th>
-        <td>${createImageGrid(
-          images.event_attendence_photos,
-          "Attendance Sheet"
-        )}</td>
+        <td>${createImageGrid(images.event_attendence_photos, "Participants List")}</td>
       </tr>
+    `
+        : ""
+    }
+    
+    ${
+      images.program_sheet &&
+      images.program_sheet.length > 0
+        ? `
+      <tr>
+        <th>program sheet</th>
+        <td>${createImageGrid(images.program_sheet, "program sheet")}</td>
+      </tr>
+    `
+        : ""
+    }
+    
+    ${
+      images.lor &&
+      images.lor.length > 0
+        ? `
+      <tr>
+        <th> LOR/LOA  </th>
+        <td>${createImageGrid(images.lor, " LOR/LOA")}</td>
+      </tr>
+    `
+        : ""
+    }
+    
+    ${
+      !images.event_attendence_photos && images.event_attendence_photos.length > 3  || !images.program_sheet &&
+    images.program_sheet.length > 0 && !images.participant_certificate  || images.participant_certificate &&
+    images.participant_certificate.length > 0
+        ? `
+      <tr>
+        <th>Participants List</th>
+        <td>${createImageGrid(images.participant_certificate, "Participants certificate")}</td>
+      </tr>
+    `
+        : ""
+    }
     </table>
-    <div class="name">
-      <p class="co">Name & Signature of Co-ordinator</p>
-      <p>Principal</p>
-    </div>
-    <div class="cmi">
-      Fr. Dr. Joshy George
-    </div>
+    
+    
+    ${
+      !images.event_attendence_photos || images.event_attendence_photos.length > 3  || !images.program_sheet &&
+    images.program_sheet.length > 0 || !images.participant_certificate  || images.participant_certificate &&
+    images.participant_certificate.length > 0
+      ?`
+      <div class="name">
+        <p class="co">Name & Signature of Co-ordinator</p>
+        <p>Principal</p>
+      </div>
+      <div class="cmi">
+        Fr. Dr. Joshy George
+      </div>
+      
+      `:''
+    }    
   `
       : "";
+
+
+    const extraimg = 
+    images.event_attendence_photos  && images.program_sheet &&
+     images.participant_certificate &&
+    images.participant_certificate.length > 0
+      ? `
+      <tr>
+        <th>Participants List</th>
+        <td>${createImageGrid(images.participant_certificate, "Participants certificate")}</td>
+      </tr>
+
+      <div class="name">
+        <p class="co">Name & Signature of Co-ordinator</p>
+        <p>Principal</p>
+      </div>
+      <div class="cmi">
+        Fr. Dr. Joshy George
+      </div>
+      `:"";
 
   return `
     <!DOCTYPE html>
@@ -550,10 +714,12 @@ ${
         </style>
     </head>
     <body>
-        ${createPage(mainInfo)}
-            ${createDescriptionPage(data.description)}
-        ${createPage(additionalInfo)}
-        ${createPage(attendanceList)}
+    ${createPage(mainInfo)}
+    ${createDescriptionPage(data.description, data.speakerDescription)}
+    ${createPage(additionalInfo)}
+    ${createPage(createDocumentPages(images))}
+    ${createPage(signatureSection)}
+        
     </body>
     </html>`;
 }
