@@ -3,7 +3,7 @@ const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcrypt");
 
-const User = require("../models/users");
+const { Users } = require("../models/users");
 const jwt = require("jsonwebtoken");
 
 /**
@@ -20,7 +20,7 @@ const jwt = require("jsonwebtoken");
 router.post("/register", async (req, res) => {
   try {
     let { full_name, email, phone_number, password, designation } = req.body;
-    let user = await User.findOne({ email: email });
+    let user = await Users.findOne({ email: email });
 
     if (password.length < 8) {
       return res.status(400).json({
@@ -48,7 +48,7 @@ router.post("/register", async (req, res) => {
       const salt = await bcrypt.genSalt(10);
       const salt_password = await bcrypt.hash(password, salt);
 
-      const newUser = new User({
+      const newUser = new Users({
         full_name: full_name,
         email: email,
         phone_number: phone_number,
@@ -63,6 +63,7 @@ router.post("/register", async (req, res) => {
       });
     }
   } catch (err) {
+    console.error("Error creating user:", err);
     return res.status(400).json({
       status: 400,
       message: "Error creating user",
@@ -87,7 +88,7 @@ router.post("/login", async (req, res) => {
     const { email, password } = req.body;
 
     // Check if user exists
-    const user = await User.findOne({ email: email });
+    const user = await Users.findOne({ email: email });
     if (!user) {
       return res.status(401).json({
         status: 401,
