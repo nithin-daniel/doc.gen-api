@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const router = express.Router();
 const multer = require("multer");
@@ -102,6 +103,36 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
+const uploadFileToCloudflare = async (file) => {
+  var axios = require("axios").default;
+
+  const filePath = file.path; // Path to the file
+  const objectKey = `images/${file.originalname}`; // Key for the uploaded file
+
+  const options = {
+    method: "PUT",
+    url: `https://api.cloudflare.com/client/v4/accounts/${
+      process.env.R2_DOCGEN_ACCOUNT_ID
+    }/r2/buckets/docgen-backend/objects/${encodeURIComponent(objectKey)}`,
+    headers: {
+      "Content-Type": "application/octet-stream",
+      Authorization: `Bearer ${process.env.R2_AUTH_TOKEN}`,
+    },
+    data: fs.createReadStream(filePath),
+  };
+
+  try {
+    await axios.request(options);
+    const publicUrl = `https://docgen-backend.${
+      process.env.R2_DOCGEN_ACCOUNT_ID
+    }.r2.cloudflarestorage.com/${encodeURIComponent(objectKey)}`;
+    return publicUrl;
+  } catch (error) {
+    console.error(`Error uploading file ${file.originalname}:`, error);
+    throw error;
+  }
+};
+
 router.post(
   "/generate",
   verifyToken,
@@ -123,31 +154,59 @@ router.post(
         data: req.body,
       });
       await report_data.save();
-      const images = {
-        kjcmt_header: `https://${current_url}/event_photo/kjcmt-header.png`,
-        kjcmt_footer: `https://${current_url}/event_photo/kjcmt-footer.png`,
-        event_photos: (req.files["event_photos"] || []).map(
-          (file) => `https://${current_url}/event_photo/${file.filename}`
-        ),
-        event_attendence_photos: (
-          req.files["event_attendence_photos"] || []
-        ).map((file) => `https://${current_url}/event_photo/${file.filename}`),
-        event_poster: (req.files["event_poster"] || []).map(
-          (file) => `https://${current_url}/event_photo/${file.filename}`
-        ),
-        speaker_image: (req.files["speaker_image"] || []).map(
-          (file) => `https://${current_url}/event_photo/${file.filename}`
-        ),
-        program_sheet: (req.files["program_sheet"] || []).map(
-          (file) => `https://${current_url}/event_photo/${file.filename}`
-        ),
-        lor: (req.files["lor"] || []).map(
-          (file) => `https://${current_url}/event_photo/${file.filename}`
-        ),
-        participant_certificate: (
-          req.files["participant_certificate"] || []
-        ).map((file) => `https://${current_url}/event_photo/${file.filename}`),
-      };
+
+      // const images = {
+      //   kjcmt_header: `https://${current_url}/event_photo/kjcmt-header.png`,
+      //   kjcmt_footer: `https://${current_url}/event_photo/kjcmt-footer.png`,
+      //   event_photos: (req.files["event_photos"] || []).map(
+      //     (file) => `https://${current_url}/event_photo/${file.filename}`
+      //   ),
+      //   event_attendence_photos: (
+      //     req.files["event_attendence_photos"] || []
+      //   ).map((file) => `https://${current_url}/event_photo/${file.filename}`),
+      //   event_poster: (req.files["event_poster"] || []).map(
+      //     (file) => `https://${current_url}/event_photo/${file.filename}`
+      //   ),
+      //   speaker_image: (req.files["speaker_image"] || []).map(
+      //     (file) => `https://${current_url}/event_photo/${file.filename}`
+      //   ),
+      //   program_sheet: (req.files["program_sheet"] || []).map(
+      //     (file) => `https://${current_url}/event_photo/${file.filename}`
+      //   ),
+      //   lor: (req.files["lor"] || []).map(
+      //     (file) => `https://${current_url}/event_photo/${file.filename}`
+      //   ),
+      //   participant_certificate: (
+      //     req.files["participant_certificate"] || []
+      //   ).map((file) => `https://${current_url}/event_photo/${file.filename}`),
+      // };
+
+      // Extract files from req.files
+      const files = req.files || {};
+      const fileKeys = Object.keys(files);
+
+      // Create a map to store the URLs
+      const images = {};
+
+      // Upload each file and collect URLs
+      for (const key of fileKeys) {
+        const fileArray = files[key];
+        if (Array.isArray(fileArray)) {
+          images[key] = await Promise.all(
+            fileArray.map((file) => uploadFileToCloudflare(file))
+          );
+        } else {
+          images[key] = [await uploadFileToCloudflare(fileArray)];
+        }
+      }
+
+      // Update images object with URLs
+      Object.keys(images).forEach((key) => {
+        images[key] = images[key].map(
+          (url) => `https://${current_url}/event_photo/${url}`
+        );
+      });
+      console.log(images);
 
       // Generate AI content
       const geminiOut = await run(
