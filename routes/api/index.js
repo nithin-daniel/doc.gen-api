@@ -376,7 +376,7 @@ ${
 
   
   const createDescriptionPage = (description, speakerDescription) => {
-    if (description.length < 700 && speakerDescription.length <= 100) return "";
+    if (description.length < 700 || speakerDescription.length <= 100) return "";
     return `
     <div class="page">
         <div class="page-content">
@@ -415,7 +415,10 @@ ${
         images.event_photos &&
         images.event_photos.length <= 3 &&
         images.event_poster &&
-        images.event_poster.length > 0
+        images.event_poster.length > 0 &&
+        images.event_poster &&
+        images.event_poster.length <= 3
+
           ? `
         <tr>
           <th>Event Poster</th>
@@ -427,12 +430,22 @@ ${
     </table>
   `;
 
+  // const extendimg = 
+  // images.event_photos &&
+  //       images.event_photos.length <= 3 &&
+  //       images.event_poster &&
+  //       images.event_poster.length > 3 ? `
+  //         <table>
+
+
+  //       `:'';
+
   const createDocumentPages = (images) => {
     const documents = [
+      { name: "Participants List", images: images.event_attendence_photos },
       { name: "Participants Certificate", images: images.participant_certificate },
       { name: "LOR/LOA", images: images.lor },
       { name: "Program Sheet", images: images.program_sheet },
-      { name: "Participants List", images: images.event_attendence_photos }
     ].filter(doc => doc.images && doc.images.length > 0);
   
     let pageContent = `<table>`;
@@ -455,6 +468,23 @@ ${
   };
 
   const signatureSection = `
+
+  ${
+    images.event_photos &&
+        images.event_photos.length >= 3 ||
+        images.event_poster &&
+        images.event_poster.length >= 3
+
+          ? `
+          <table>
+        <tr>
+          <th>Event Poster</th>
+          <td>${createImageGrid(images.event_poster, "Event Poster")}</td>
+        </tr>
+        </table>
+        `:""
+  }
+
     <div class="name">
       <p class="co">Name & Signature of Co-ordinator</p>
       <p>Principal</p>
@@ -543,6 +573,7 @@ ${
     images.program_sheet.length > 0 || !images.participant_certificate  || images.participant_certificate &&
     images.participant_certificate.length > 0
       ?`
+      
       <div class="name">
         <p class="co">Name & Signature of Co-ordinator</p>
         <p>Principal</p>
