@@ -119,29 +119,29 @@ router.post(
     try {
       const current_url = req.headers.host;
       const images = {
-        kjcmt_header: `http://${current_url}/event_photo/kjcmt-header.png`,
-        kjcmt_footer: `http://${current_url}/event_photo/kjcmt-footer.png`,
+        kjcmt_header: `https://${current_url}/event_photo/kjcmt-header.png`,
+        kjcmt_footer: `https://${current_url}/event_photo/kjcmt-footer.png`,
         event_photos: (req.files["event_photos"] || []).map(
-          (file) => `http://${current_url}/event_photo/${file.filename}`
+          (file) => `https://${current_url}/event_photo/${file.filename}`
         ),
         event_attendence_photos: (
           req.files["event_attendence_photos"] || []
-        ).map((file) => `http://${current_url}/event_photo/${file.filename}`),
+        ).map((file) => `https://${current_url}/event_photo/${file.filename}`),
         event_poster: (req.files["event_poster"] || []).map(
-          (file) => `http://${current_url}/event_photo/${file.filename}`
+          (file) => `https://${current_url}/event_photo/${file.filename}`
         ),
         speaker_image: (req.files["speaker_image"] || []).map(
-          (file) => `http://${current_url}/event_photo/${file.filename}`
+          (file) => `https://${current_url}/event_photo/${file.filename}`
         ),
         program_sheet: (req.files["program_sheet"] || []).map(
-          (file) => `http://${current_url}/event_photo/${file.filename}`
+          (file) => `https://${current_url}/event_photo/${file.filename}`
         ),
         lor: (req.files["lor"] || []).map(
-          (file) => `http://${current_url}/event_photo/${file.filename}`
+          (file) => `https://${current_url}/event_photo/${file.filename}`
         ),
         participant_certificate: (
           req.files["participant_certificate"] || []
-        ).map((file) => `http://${current_url}/event_photo/${file.filename}`),
+        ).map((file) => `https://${current_url}/event_photo/${file.filename}`),
       };
 
       // Generate AI content
