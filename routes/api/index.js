@@ -6,7 +6,8 @@ const fs = require("fs");
 const verifyToken = require("../../middleware/authentication");
 const run = require("../../helpers/gemini");
 const slugify = require("slugify");
-const { log } = require("console");
+
+const { Reports } = require("../../models/users");
 
 // // Multer configuration
 // const storage = multer.diskStorage({
@@ -118,6 +119,11 @@ router.post(
   async (req, res) => {
     try {
       const current_url = req.headers.host;
+      const report_data = new Reports({
+        userId: req.user["email"],
+        data: req.body,
+      });
+      await report_data.save();
       const images = {
         kjcmt_header: `https://${current_url}/event_photo/kjcmt-header.png`,
         kjcmt_footer: `https://${current_url}/event_photo/kjcmt-footer.png`,
