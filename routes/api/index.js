@@ -6,7 +6,8 @@ const fs = require("fs");
 const verifyToken = require("../../middleware/authentication");
 const run = require("../../helpers/gemini");
 const slugify = require("slugify");
-const { log } = require("console");
+
+const { Reports } = require("../../models/users");
 
 // // Multer configuration
 // const storage = multer.diskStorage({
@@ -118,6 +119,11 @@ router.post(
   async (req, res) => {
     try {
       const current_url = req.headers.host;
+      const report_data = new Reports({
+        userId: req.user["email"],
+        data: req.body,
+      });
+      await report_data.save();
       const images = {
         kjcmt_header: `http://${current_url}/event_photo/kjcmt-header.png`,
         kjcmt_footer: `http://${current_url}/event_photo/kjcmt-footer.png`,
@@ -164,7 +170,7 @@ router.post(
           ? req.files["event_attendence_photos"].map((file) => file.filename)
           : []
       );
-      
+
       const speaker_details = [
         (speakerName = req.body.speaker_name),
         (speakerPhone = req.body.phone_number),
@@ -172,7 +178,7 @@ router.post(
         (speakerDescription = req.body.speaker_description),
       ];
 
-      
+
 
       const extractedData = extractDataFromGeminiOutput(
         geminiOut,
@@ -258,7 +264,7 @@ function extractDataFromGeminiOutput(geminiOut, speaker_details) {
     speakerName: speaker_details[0],
     speakerPhone: speaker_details[1],
     speakerEmail: speaker_details[2],
-    speakerDescription: speaker_details[3],    
+    speakerDescription: speaker_details[3],
   };
 }
 function generateHTML(data, images) {
@@ -284,20 +290,19 @@ function generateHTML(data, images) {
     `;
   };
 
-  
-  const aliging = (data) =>{ 
-    if(data.speakerDescription.length > 100){
+
+  const aliging = (data) => {
+    if (data.speakerDescription.length > 100) {
       return `
       <table>
       ${createTableRow("Speaker Description", data.speakerDescription)}
       </table>
       `
     }
-    
+
   }
   const createSpeakerInfo = (speaker) => {
-    console.log("Speaker data in createSpeakerInfo:", speaker); // Log for debugging
-
+    // console.log("Speaker data in createSpeakerInfo:", speaker); 
     if (!speaker.name) return "";
 
     let info = "";
@@ -321,7 +326,7 @@ function generateHTML(data, images) {
   const eventdick = (data) => {
     const wordCount = data.description.split(/\s+/).length;
     const hasSpeaker = data.speakerName || data.speakerPhone || data.speakerEmail || data.speakerDescription;
-    
+
     if (!hasSpeaker && wordCount <= 700) {
       return createTableRow("Event Description", data.description);
     }
@@ -355,29 +360,28 @@ function generateHTML(data, images) {
       ${createTableRow("Mode of Event", data.mode)}
       ${createTableRow("Faculty Coordinator", data.coordinator)}
       ${createSpeakerInfo({
-        name: data.speakerName,
-        phone: data.speakerPhone,
-        email: data.speakerEmail,
-        description: data.speakerDescription,
-      })}
+    name: data.speakerName,
+    phone: data.speakerPhone,
+    email: data.speakerEmail,
+    description: data.speakerDescription,
+  })}
      
-${
-  eventdick(data)
-}   
+${eventdick(data)
+    }   
  </table>
   `;
 
 
-  
+
   const createDescriptionPage = (description, speakerDescription) => {
-    if (description.length < 700 && speakerDescription.length <= 100) return "";
+    if (description && description.length < 700 || speakerDescription && speakerDescription.length <= 100) return "";
     return `
     <div class="page">
         <div class="page-content">
           <img src="${images.kjcmt_header}" alt="Header" class="header">
           <div class="content">
           <table>
-          ${speakerDescription.length > 100 ? createTableRow("Speaker Description", speakerDescription) : ""}
+          ${speakerDescription && speakerDescription.length > 100 ? createTableRow("Speaker Description", speakerDescription) : ""}
               ${createTableRow("Event Description", description)}
             </table>
             
@@ -395,50 +399,85 @@ ${
        
       ${createTableRow("Feedback", data.feedback)}
       ${createTableRow("Program Outcome", data.outcome)}
-      ${
-        images.event_photos && images.event_photos.length > 0
-          ? `
+      ${images.event_photos && images.event_photos.length > 0 && data.outcome.length < 500 && data.outcome
+
+
+      ? `
         <tr>
           <th>Event Photographs</th>
           <td>${createImageGrid(images.event_photos, "Event Photo")}</td>
         </tr>
       `
-          : ""
-      }
-      ${
-        images.event_photos &&
-        images.event_photos.length <= 3 &&
-        images.event_poster &&
-        images.event_poster.length > 0
-          ? `
+      : ""
+    }
+      ${images.event_photos &&
+      images.event_photos.length < 3 &&
+      images.event_poster &&
+      images.event_poster.length > 0 &&
+      images.event_poster &&
+      images.event_poster.length <= 3
+      || data.outcome
+      && data.outcome.length < 500
+      ? `
         <tr>
           <th>Event Poster</th>
           <td>${createImageGrid(images.event_poster, "Event Poster")}</td>
         </tr>
       `
-          : ""
-      }
+      : ""
+    }
     </table>
   `;
 
+  // const extendimg = 
+  // images.event_photos &&
+  //       images.event_photos.length <= 3 &&
+  //       images.event_poster &&
+  //       images.event_poster.length > 3 ? `
+  //         <table>
+
+
+  //       `:'';
+
   const createDocumentPages = (images) => {
     const documents = [
+      { name: "Participants List", images: images.event_attendence_photos },
       { name: "Participants Certificate", images: images.participant_certificate },
       { name: "LOR/LOA", images: images.lor },
       { name: "Program Sheet", images: images.program_sheet },
-      { name: "Participants List", images: images.event_attendence_photos }
     ].filter(doc => doc.images && doc.images.length > 0);
   
     let pageContent = `<table>`;
     documents.forEach(doc => {
-      pageContent += createDocumentSection(doc);
+      pageContent += createDocumentSection(doc, images);
     });
     pageContent += `</table>`;
   
+    // Add signature section if conditions are not met
+    pageContent += `
+      ${!(images.program_sheet && images.program_sheet.length > 0 && 
+          images.lor && images.lor.length > 0 && 
+          images.participant_certificate && images.participant_certificate.length > 0) 
+        ? `
+          <div class="name">
+            <p class="co">Name & Signature of Co-ordinator</p>
+            <p>Principal</p>
+          </div>
+          <div class="cmi">
+            Fr. Dr. Joshy George
+          </div>
+        ` 
+        : ''
+      }
+    `;
+  
     return pageContent;
   };
-
-  const createDocumentSection = (document) => {
+  
+  const createDocumentSection = (document, images) => {
+    // console.log(document);
+    // console.log(images);
+    
     if (!document) return '';
     return `
       <tr>
@@ -448,7 +487,93 @@ ${
     `;
   };
 
+  const createsignaturePage = (data) => {
+    // console.log(data);
+    // console.log(images.program_sheet.length);
+    
+    
+    if (images.program_sheet && images.program_sheet.length > 0 && images.lor && data.lor.length > 0 && images.participant_certificate && images.participant_certificate.length > 0) return `
+      <div class="page">
+        <div class="page-content">
+          <img src="${images.kjcmt_header}" alt="Header" class="header">
+          <div class="content">
+           
+    
+  ${images.event_photos &&
+        images.event_photos.length >= 3 &&
+        images.event_poster &&
+        images.event_poster.length >= 3
+
+        ? `
+          <table>
+        <tr>
+          <th>Event Poster</th>
+          <td>${createImageGrid(images.event_poster, "Event Poster")}</td>
+        </tr>
+        </table>
+        `: ""
+      }
+
+  ${images.event_photos && images.event_photos.length > 3 && images.event_poster &&
+        images.event_poster.length >= 3 && data.outcome && data.outcome.length >= 500
+        ? `
+      <table>
+    <tr>
+      <th>Event Photographs</th>
+      <td>${createImageGrid(images.event_photos, "Event Photo")}</td>
+    </tr>
+    </table>
+  `
+        : ""
+      }
+
+    <div class="name">
+      <p class="co">Name & Signature of Co-ordinator</p>
+      <p>Principal</p>
+    </div>
+    <div class="cmi">
+      Fr. Dr. Joshy George
+    </div>
+    </div>
+          </div>
+          <img src="${images.kjcmt_footer}" alt="Footer" class="footer">
+        </div>
+      </div>
+    `;
+    return ``;
+  };
+
+
   const signatureSection = `
+  
+  ${images.event_photos &&
+      images.event_photos.length >= 3 &&
+      images.event_poster &&
+      images.event_poster.length >= 3
+
+      ? `
+          <table>
+        <tr>
+          <th>Event Poster</th>
+          <td>${createImageGrid(images.event_poster, "Event Poster")}</td>
+        </tr>
+        </table>
+        `: ""
+    }
+
+  ${images.event_photos && images.event_photos.length > 3 && images.event_poster &&
+      images.event_poster.length >= 3 && data.outcome && data.outcome.length >= 500
+      ? `
+      <table>
+    <tr>
+      <th>Event Photographs</th>
+      <td>${createImageGrid(images.event_photos, "Event Photo")}</td>
+    </tr>
+    </table>
+  `
+      : ""
+    }
+
     <div class="name">
       <p class="co">Name & Signature of Co-ordinator</p>
       <p>Principal</p>
@@ -459,20 +584,19 @@ ${
   `;
 
 
-// ----------------------------------------------
-// ---------------------------------------------------------------------------------------------------------------------------------
-// -----------------------------------------------
+  // ----------------------------------------------
+  // ---------------------------------------------------------------------------------------------------------------------------------
+  // -----------------------------------------------
   const attendanceList =
     images.event_attendence_photos && images.event_attendence_photos.length > 0 || images.program_sheet &&
-    images.program_sheet.length > 0 || images.participant_certificate &&
-    images.participant_certificate.length > 0 
+      images.program_sheet.length > 0 || images.participant_certificate &&
+      images.participant_certificate.length > 0
       ? `
     <table>
-    ${
-      images.event_photos &&
-      images.event_photos.length > 3 &&
-      images.event_poster &&
-      images.event_poster.length > 0
+    ${images.event_photos &&
+        images.event_photos.length > 3 &&
+        images.event_poster &&
+        images.event_poster.length > 0
         ? `
       <tr>
         <th>Event Poster</th>
@@ -480,10 +604,9 @@ ${
       </tr>
     `
         : ""
-    }
-    ${
-      images.event_attendence_photos &&
-      images.event_attendence_photos.length > 0
+      }
+    ${images.event_attendence_photos &&
+        images.event_attendence_photos.length > 0
         ? `
       <tr>
         <th>Participants List</th>
@@ -491,11 +614,10 @@ ${
       </tr>
     `
         : ""
-    }
+      }
     
-    ${
-      images.program_sheet &&
-      images.program_sheet.length > 0
+    ${images.program_sheet &&
+        images.program_sheet.length > 0
         ? `
       <tr>
         <th>program sheet</th>
@@ -503,11 +625,10 @@ ${
       </tr>
     `
         : ""
-    }
+      }
     
-    ${
-      images.lor &&
-      images.lor.length > 0
+    ${images.lor &&
+        images.lor.length > 0
         ? `
       <tr>
         <th> LOR/LOA  </th>
@@ -515,12 +636,11 @@ ${
       </tr>
     `
         : ""
-    }
+      }
     
-    ${
-      !images.event_attendence_photos && images.event_attendence_photos.length > 3  || !images.program_sheet &&
-    images.program_sheet.length > 0 && !images.participant_certificate  || images.participant_certificate &&
-    images.participant_certificate.length > 0
+    ${!images.event_attendence_photos && images.event_attendence_photos.length > 3 || !images.program_sheet &&
+        images.program_sheet.length > 0 && !images.participant_certificate || images.participant_certificate &&
+        images.participant_certificate.length > 0
         ? `
       <tr>
         <th>Participants List</th>
@@ -528,15 +648,15 @@ ${
       </tr>
     `
         : ""
-    }
+      }
     </table>
     
     
-    ${
-      !images.event_attendence_photos || images.event_attendence_photos.length > 3  || !images.program_sheet &&
-    images.program_sheet.length > 0 || !images.participant_certificate  || images.participant_certificate &&
-    images.participant_certificate.length > 0
-      ?`
+    ${!images.event_attendence_photos || images.event_attendence_photos.length > 3 || !images.program_sheet &&
+        images.program_sheet.length > 0 || !images.participant_certificate || images.participant_certificate &&
+        images.participant_certificate.length > 0
+        ? `
+      
       <div class="name">
         <p class="co">Name & Signature of Co-ordinator</p>
         <p>Principal</p>
@@ -545,30 +665,13 @@ ${
         Fr. Dr. Joshy George
       </div>
       
-      `:''
-    }    
+      `: ''
+      }    
   `
       : "";
 
 
-    const extraimg = 
-    images.event_attendence_photos  && images.program_sheet &&
-     images.participant_certificate &&
-    images.participant_certificate.length > 0
-      ? `
-      <tr>
-        <th>Participants List</th>
-        <td>${createImageGrid(images.participant_certificate, "Participants certificate")}</td>
-      </tr>
 
-      <div class="name">
-        <p class="co">Name & Signature of Co-ordinator</p>
-        <p>Principal</p>
-      </div>
-      <div class="cmi">
-        Fr. Dr. Joshy George
-      </div>
-      `:"";
 
   return `
     <!DOCTYPE html>
@@ -712,7 +815,8 @@ ${
     ${createDescriptionPage(data.description, data.speakerDescription)}
     ${createPage(additionalInfo)}
     ${createPage(createDocumentPages(images))}
-    ${createPage(signatureSection)}
+    ${createsignaturePage(images)}
+    
         
     </body>
     </html>`;
