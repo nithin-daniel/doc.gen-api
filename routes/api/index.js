@@ -72,20 +72,21 @@ router.post(
         participant_certificate: [],
       };
 
-      // Helper function to handle file uploads
-      const handleFiles = async (fieldName) => {
+      const handleFiles = async (fieldName, req, uploadPromises, fileUrls) => {
         if (req.files[fieldName]) {
           for (const file of req.files[fieldName]) {
             let buffer = file.buffer;
 
-            // Compress images using sharp if it's an image
             if (file.mimetype.startsWith("image/")) {
               buffer = await compressImage(buffer, 500); // Compress to 500KB
             }
+            const folderName = fieldName;
+            const fileExtension = file.originalname.split(".").pop();
+            const fileName = `${Date.now()}_${file.originalname}`;
+            const key = `${folderName}/${generateSlug(
+              fileName
+            )}.${fileExtension}`;
 
-            const key = generateSlug(
-              `${fieldName}/${Date.now()}_${file.originalname}`
-            );
             const params = {
               Bucket: process.env.R2_BUCKET_NAME,
               Key: key,
@@ -95,7 +96,7 @@ router.post(
 
             const command = new PutObjectCommand(params);
             uploadPromises.push(s3Client.send(command));
-            fileUrls[fieldName].push(`${process.env.R2_PUBLIC}${key}`);
+            fileUrls[fieldName].push(`${process.env.R2_PUBLIC}/${key}`); // Store the file URL
           }
         }
       };
@@ -118,11 +119,11 @@ router.post(
         kjcmt_footer: `https://${current_url}/event_photo/kjcmt-footer.png`,
         fileUrls,
       };
-      res.json({
-        success: true,
-        message: "Files uploaded successfully",
-        images,
-      });
+      // res.json({
+      //   success: true,
+      //   message: "Files uploaded successfully",
+      //   images,
+      // });
       // Generate AI content
       const geminiOut = await run(
         req.body.event_name,
@@ -155,104 +156,111 @@ router.post(
       );
       const html = generateHTML(extractedData, images);
 
-            res.send(html);
-          } catch (err) {
-            console.error("Error generating report:", err);
-            res.status(500).json({
-              status: 500,
-              message: "Error generating report",
-              error: err.message,
-            });
-          }
+      // res.send(html);
+      res.json({
+        success: true,
+        message: "HTML rendered successfully",
+        html: html,
+        images: images,
+      });
+    } catch (error) {
+      console.error("Error uploading files:", error);
+      res
+        .status(500)
+        .json({ success: false, message: "Error", error: error.message });
+    }
+
+    function extractDataFromGeminiOutput(geminiOut, speaker_details) {
+      const processText = (text) => {
+        // Convert asterisk bullet points to HTML unordered list
+        text = text.replace(/^\s*\*\s*/gm, "<li>");
+        if (text.includes("<li>")) {
+          text = "<ul>" + text + "</ul>";
         }
-      );
-      function extractDataFromGeminiOutput(geminiOut, speaker_details) {
-        const processText = (text) => {
-          // Convert asterisk bullet points to HTML unordered list
-          text = text.replace(/^\s*\*\s*/gm, "<li>");
-          if (text.includes("<li>")) {
-            text = "<ul>" + text + "</ul>";
-          }
-          text = text.replace(/<\/li><li>/g, "</li>\n<li>");
-          text = text.replace(/<li>(.*?)<\/li>/g, "<li>$1</li>");
+        text = text.replace(/<\/li><li>/g, "</li>\n<li>");
+        text = text.replace(/<li>(.*?)<\/li>/g, "<li>$1</li>");
 
-          // Convert double asterisks to bold HTML tags
-          text = text.replace(/\*\*(.*?)\*\*/g, "<b>$1</b>");
+        // Convert double asterisks to bold HTML tags
+        text = text.replace(/\*\*(.*?)\*\*/g, "<b>$1</b>");
 
-          return text.trim();
-        };
+        return text.trim();
+      };
 
-        const extract = (field) => {
-          const regex = new RegExp(`\\*\\*${field}:\\*\\*\\s*([^\\n]+)`);
-          const match = geminiOut.match(regex);
-          return match ? processText(match[1]) : "";
-        };
+      const extract = (field) => {
+        const regex = new RegExp(`\\*\\*${field}:\\*\\*\\s*([^\\n]+)`);
+        const match = geminiOut.match(regex);
+        return match ? processText(match[1]) : "";
+      };
 
-        const extractMultiline = (field) => {
-          const regex = new RegExp(
-            `\\*\\*${field}:\\*\\*\\s*([\\s\\S]*?)(?=\\n\\n\\*\\*|$)`
-          );
-          const match = geminiOut.match(regex);
-          return match ? processText(match[1]) : "";
-        };
+      const extractMultiline = (field) => {
+        const regex = new RegExp(
+          `\\*\\*${field}:\\*\\*\\s*([\\s\\S]*?)(?=\\n\\n\\*\\*|$)`
+        );
+        const match = geminiOut.match(regex);
+        return match ? processText(match[1]) : "";
+      };
 
-        return {
-          eventName: extract("Event/Program Name"),
-          date: extract("Date"),
-          time: extract("Time"),
-          organizingDept: extract("Organizing Department/Club/Cell"),
-          studentParticipants: extract("Total Student Participants"),
-          facultyParticipants: extract("Total Faculty Participants"),
-          mode: extract("Mode of Event"),
-          coordinator: extract("Faculty Coordinator"),
-          description: extractMultiline("Brief Event/Program Description"),
-          outcome: extractMultiline("Program Outcome"),
-          feedback: extractMultiline("Feedback"),
-          // speakerName: extract("Speaker Name"),
-          speakerName: speaker_details.speakerName,
-          speakerPhone: speaker_details.speakerPhone,
-          speakerEmail: speaker_details.speakerEmail,
-          speakerDescription: speaker_details.speakerDescription,
-        };
-      }
-      function generateHTML(data, images) {
-        const createTableRow = (label, value) => {
-          if (value == null || value === "") return ""; // Skip if value is null, undefined, or empty string
-          return `
+      return {
+        eventName: extract("Event/Program Name"),
+        date: extract("Date"),
+        time: extract("Time"),
+        organizingDept: extract("Organizing Department/Club/Cell"),
+        studentParticipants: extract("Total Student Participants"),
+        facultyParticipants: extract("Total Faculty Participants"),
+        mode: extract("Mode of Event"),
+        coordinator: extract("Faculty Coordinator"),
+        description: extractMultiline("Brief Event/Program Description"),
+        outcome: extractMultiline("Program Outcome"),
+        feedback: extractMultiline("Feedback"),
+        // speakerName: extract("Speaker Name"),
+        speakerName: speaker_details.speakerName,
+        speakerPhone: speaker_details.speakerPhone,
+        speakerEmail: speaker_details.speakerEmail,
+        speakerDescription: speaker_details.speakerDescription,
+      };
+    }
+    function generateHTML(data, images) {
+      const createTableRow = (label, value) => {
+        if (value == null || value === "") return ""; // Skip if value is null, undefined, or empty string
+        return `
             <tr>
                 <th>${label}</th>
                 <td>${value}</td>
             </tr>
           `;
-        };
+      };
 
-        const createImageGrid = (images, altText) => {
-          if (!images || images.length === 0) return "";
-          return `
+      const createImageGrid = (images, altText) => {
+        if (!images || images.length === 0) return "";
+        return `
             <div class="image-grid">
-                ${images.map((src) => `<img src="${src}" alt="${altText}">`).join("")}
+                ${images
+                  .map((src) => `<img src="${src}" alt="${altText}">`)
+                  .join("")}
             </div>
           `;
-        };
+      };
 
-        const createSpeakerInfo = (speaker) => {
-          if (!speaker.name) return "";
-          let info = `<strong>Name:</strong> ${speaker.name}<br>`;
-          if (speaker.phone) info += `<strong>Phone:</strong> ${speaker.phone}<br>`;
-          if (speaker.email) info += `<strong>Email:</strong> ${speaker.email}<br>`;
-          if (speaker.description)
-            info += `<strong>Description:</strong> ${speaker.description}`;
-          return `
+      const createSpeakerInfo = (speaker) => {
+        if (!speaker.name) return "";
+        let info = `<strong>Name:</strong> ${speaker.name}<br>`;
+        if (speaker.phone)
+          info += `<strong>Phone:</strong> ${speaker.phone}<br>`;
+        if (speaker.email)
+          info += `<strong>Email:</strong> ${speaker.email}<br>`;
+        if (speaker.description)
+          info += `<strong>Description:</strong> ${speaker.description}`;
+        return `
             <tr>
               <th>Speaker Information</th>
               <td>${info}</td>
             </tr>
           `;
-        };
+      };
 
-        const createPage = (content) => {
-          if (!content.trim()) return ""; // Skip empty pages
-          return `
+      const createPage = (content) => {
+        if (!content.trim()) return ""; // Skip empty pages
+        return `
             <div class="page">
               <div class="page-content">
                 <img src="${images.kjcmt_header}" alt="Header" class="header">
@@ -263,16 +271,22 @@ router.post(
               </div>
             </div>
           `;
-        };
+      };
 
-        const mainInfo = `
+      const mainInfo = `
           <table>
             ${createTableRow("Title of Activity", data.eventName)}
             ${createTableRow("Date", data.date)}
             ${createTableRow("Time", data.time)}
             ${createTableRow("Department/Club/Cell", data.organizingDept)}
-            ${createTableRow("Total Student Participants", data.studentParticipants)}
-            ${createTableRow("Total Faculty Participants", data.facultyParticipants)}
+            ${createTableRow(
+              "Total Student Participants",
+              data.studentParticipants
+            )}
+            ${createTableRow(
+              "Total Faculty Participants",
+              data.facultyParticipants
+            )}
             ${createTableRow("Mode of Event", data.mode)}
             ${createTableRow("Faculty Coordinator", data.coordinator)}
 
@@ -284,16 +298,16 @@ router.post(
        </table>
         `;
 
-        const createDescriptionPage = (description) => {
-          if (!description || description.length < 800) return "";
-          return createPage(`
+      const createDescriptionPage = (description) => {
+        if (!description || description.length < 800) return "";
+        return createPage(`
             <table>
             ${createTableRow("Event Description", data.description)}
             </table>
             `);
-        };
+      };
 
-        const additionalInfo = `
+      const additionalInfo = `
           <table>
             ${createSpeakerInfo({
               name: data.speakerName,
@@ -329,9 +343,10 @@ router.post(
           </table>
         `;
 
-        const attendanceList =
-          images.event_attendence_photos && images.event_attendence_photos.length > 0
-            ? `
+      const attendanceList =
+        images.event_attendence_photos &&
+        images.event_attendence_photos.length > 0
+          ? `
           <table>
           ${
             images.event_photos &&
@@ -362,9 +377,9 @@ router.post(
             Fr. Dr. Joshy George
           </div>
         `
-            : "";
+          : "";
 
-        return `
+      return `
           <!DOCTYPE html>
           <html lang="en">
           <head>
@@ -508,16 +523,14 @@ router.post(
               ${createPage(attendanceList)}
           </body>
           </html>`;
-      }
-    } catch (error) {
-      console.error("Error uploading files:", error);
-      res
-        .status(500)
-        .json({ success: false, message: "Failed to upload files" });
     }
+    // res.json({
+    //   success: true,
+    //   message: "Files uploaded successfully",
+    //   images,
+    // });
   }
 );
-
 
 // Error handling middleware for Multer
 router.use((err, req, res, next) => {
