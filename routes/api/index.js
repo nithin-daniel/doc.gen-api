@@ -7,6 +7,7 @@ const fs = require("fs");
 const verifyToken = require("../../middleware/authentication");
 const run = require("../../helpers/gemini");
 const slugify = require("slugify");
+
 const { Reports } = require("../../models/users");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const sharp = require("sharp");
@@ -55,7 +56,8 @@ router.post(
     { name: "speaker_image", maxCount: 4 },
     { name: "program_sheet", maxCount: 2 },
     { name: "lor", maxCount: 2 },
-    { name: "participant_certificate", maxCount: 6 },
+    { name: "participant_certificate", maxCount: 2 },
+    ,
   ]),
   async (req, res) => {
     try {
@@ -116,43 +118,42 @@ router.post(
         kjcmt_footer: `https://${current_url}/event_photo/kjcmt-footer.png`,
         fileUrls,
       };
-
       res.json({
         success: true,
         message: "Files uploaded successfully",
         images,
       });
       // Generate AI content
-      //       const geminiOut = await run(
-      //         req.body.event_name,
-      //         req.body.event_date,
-      //         req.body.event_time,
-      //         req.body.event_organizing_club,
-      //         req.body.student_count,
-      //         req.body.faculty_count,
-      //         req.body.event_mode,
-      //         req.body.faculty_cooridinator,
-      //         req.body.event_description,
-      //         req.body.program_outcome,
-      //         req.body.event_feedback,
-      //         req.files["event_attendence_photos"]
-      //           ? req.files["event_attendence_photos"].map((file) => file.filename)
-      //           : [],
-      //         req.files["event_attendence_photos"]
-      //           ? req.files["event_attendence_photos"].map((file) => file.filename)
-      //           : []
-      //       );
-      //       const speaker_details = [
-      //         (speakerName = req.body.speaker_name),
-      //         (speakerPhone = req.body.phone_number),
-      //         (speakerEmail = req.body.speaker_email),
-      //         (speakerDescription = req.body.speaker_description),
-      //       ];
-      //       const extractedData = extractDataFromGeminiOutput(
-      //         geminiOut,
-      //         speaker_details
-      //       );
-      //       const html = generateHTML(extractedData, images);
+      const geminiOut = await run(
+        req.body.event_name,
+        req.body.event_date,
+        req.body.event_time,
+        req.body.event_organizing_club,
+        req.body.student_count,
+        req.body.faculty_count,
+        req.body.event_mode,
+        req.body.faculty_cooridinator,
+        req.body.event_description,
+        req.body.program_outcome,
+        req.body.event_feedback,
+        req.files["event_attendence_photos"]
+          ? req.files["event_attendence_photos"].map((file) => file.filename)
+          : [],
+        req.files["event_attendence_photos"]
+          ? req.files["event_attendence_photos"].map((file) => file.filename)
+          : []
+      );
+      const speaker_details = [
+        (speakerName = req.body.speaker_name),
+        (speakerPhone = req.body.phone_number),
+        (speakerEmail = req.body.speaker_email),
+        (speakerDescription = req.body.speaker_description),
+      ];
+      const extractedData = extractDataFromGeminiOutput(
+        geminiOut,
+        speaker_details
+      );
+      const html = generateHTML(extractedData, images);
 
       //       res.send(html);
       //     } catch (err) {
@@ -214,16 +215,16 @@ router.post(
       //     speakerDescription: speaker_details.speakerDescription,
       //   };
       // }
-      // function generateHTML(data, images) {
-      //   const createTableRow = (label, value) => {
-      //     if (value == null || value === "") return ""; // Skip if value is null, undefined, or empty string
-      //     return `
-      //       <tr>
-      //           <th>${label}</th>
-      //           <td>${value}</td>
-      //       </tr>
-      //     `;
-      //   };
+      function generateHTML(data, images) {
+        const createTableRow = (label, value) => {
+          if (value == null || value === "") return ""; // Skip if value is null, undefined, or empty string
+          return `
+            <tr>
+                <th>${label}</th>
+                <td>${value}</td>
+            </tr>
+          `;
+        };
 
       //   const createImageGrid = (images, altText) => {
       //     if (!images || images.length === 0) return "";
@@ -582,39 +583,39 @@ router.post(
 //     return text.trim();
 //   };
 
-//   const extract = (field) => {
-//     const regex = new RegExp(`\\*\\*${field}:\\*\\*\\s*([^\\n]+)`);
-//     const match = geminiOut.match(regex);
-//     return match ? processText(match[1]) : "";
-//   };
+const extract = (field) => {
+  const regex = new RegExp(`\\*\\*${field}:\\*\\*\\s*([^\\n]+)`);
+  const match = geminiOut.match(regex);
+  return match ? processText(match[1]) : "";
+};
 
-//   const extractMultiline = (field) => {
-//     const regex = new RegExp(
-//       `\\*\\*${field}:\\*\\*\\s*([\\s\\S]*?)(?=\\n\\n\\*\\*|$)`
-//     );
-//     const match = geminiOut.match(regex);
-//     return match ? processText(match[1]) : "";
-//   };
+const extractMultiline = (field) => {
+  const regex = new RegExp(
+    `\\*\\*${field}:\\*\\*\\s*([\\s\\S]*?)(?=\\n\\n\\*\\*|$)`
+  );
+  const match = geminiOut.match(regex);
+  return match ? processText(match[1]) : "";
+};
 
-//   return {
-//     eventName: extract("Event/Program Name"),
-//     date: extract("Date"),
-//     time: extract("Time"),
-//     organizingDept: extract("Organizing Department/Club/Cell"),
-//     studentParticipants: extract("Total Student Participants"),
-//     facultyParticipants: extract("Total Faculty Participants"),
-//     mode: extract("Mode of Event"),
-//     coordinator: extract("Faculty Coordinator"),
-//     description: extractMultiline("Brief Event/Program Description"),
-//     outcome: extractMultiline("Program Outcome"),
-//     feedback: extractMultiline("Feedback"),
-//     // speakerName: extract("Speaker Name"),
-//     speakerName: speaker_details.speakerName,
-//     speakerPhone: speaker_details.speakerPhone,
-//     speakerEmail: speaker_details.speakerEmail,
-//     speakerDescription: speaker_details.speakerDescription,
-//   };
-// }
+// return {
+//   eventName: extract("Event/Program Name"),
+//   date: extract("Date"),
+//   time: extract("Time"),
+//   organizingDept: extract("Organizing Department/Club/Cell"),
+//   studentParticipants: extract("Total Student Participants"),
+//   facultyParticipants: extract("Total Faculty Participants"),
+//   mode: extract("Mode of Event"),
+//   coordinator: extract("Faculty Coordinator"),
+//   description: extractMultiline("Brief Event/Program Description"),
+//   outcome: extractMultiline("Program Outcome"),
+//   feedback: extractMultiline("Feedback"),
+//   // speakerName: extract("Speaker Name"),
+//   speakerName: speaker_details.speakerName,
+//   speakerPhone: speaker_details.speakerPhone,
+//   speakerEmail: speaker_details.speakerEmail,
+//   speakerDescription: speaker_details.speakerDescription,
+// };
+// // }
 // function generateHTML(data, images) {
 //   const createTableRow = (label, value) => {
 //     if (value == null || value === "") return ""; // Skip if value is null, undefined, or empty string
@@ -626,14 +627,14 @@ router.post(
 //     `;
 //   };
 
-//   const createImageGrid = (images, altText) => {
-//     if (!images || images.length === 0) return "";
-//     return `
-//       <div class="image-grid">
-//           ${images.map((src) => `<img src="${src}" alt="${altText}">`).join("")}
-//       </div>
-//     `;
-//   };
+//   //   const createImageGrid = (images, altText) => {
+//   //     if (!images || images.length === 0) return "";
+//   //     return `
+//   //       <div class="image-grid">
+//   //           ${images.map((src) => `<img src="${src}" alt="${altText}">`).join("")}
+//   //       </div>
+//   //     `;
+//   //   };
 
 //   const createSpeakerInfo = (speaker) => {
 //     if (!speaker.name) return "";
