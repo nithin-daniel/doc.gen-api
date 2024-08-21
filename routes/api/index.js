@@ -200,7 +200,9 @@ router.post(
         const match = geminiOut.match(regex);
         return match ? processText(match[1]) : "";
       };
-
+      console.log(speaker_details);
+      console.log(speaker_details[1]);
+      
       return {
         eventName: extract("Event/Program Name"),
         date: extract("Date"),
@@ -214,10 +216,10 @@ router.post(
         outcome: extractMultiline("Program Outcome"),
         feedback: extractMultiline("Feedback"),
         // speakerName: extract("Speaker Name"),
-        speakerName: speaker_details.speakerName,
-        speakerPhone: speaker_details.speakerPhone,
-        speakerEmail: speaker_details.speakerEmail,
-        speakerDescription: speaker_details.speakerDescription,
+        speakerName: speaker_details[0],
+        speakerPhone: speaker_details[1],
+        speakerEmail: speaker_details[2],
+        speakerDescription: speaker_details[3],
       };
     }
     function generateHTML(data, images) {
