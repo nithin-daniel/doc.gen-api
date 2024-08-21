@@ -115,8 +115,8 @@ router.post(
       await Promise.all(uploadPromises);
       const current_url = req.headers.host;
       const images = {
-        kjcmt_header: `https://${current_url}/event_photo/kjcmt-header.png`,
-        kjcmt_footer: `https://${current_url}/event_photo/kjcmt-footer.png`,
+        kjcmt_header: `http://${current_url}/event_photo/kjcmt-header.png`,
+        kjcmt_footer: `http://${current_url}/event_photo/kjcmt-footer.png`,
         fileUrls,
       };
       // res.json({
@@ -155,14 +155,16 @@ router.post(
         speaker_details
       );
       const html = generateHTML(extractedData, images);
-
-      // res.send(html);
-      res.json({
-        success: true,
-        message: "HTML rendered successfully",
-        html: html,
-        images: images,
-      });
+      // console.log(html);
+    
+      
+      res.send(html);
+      // res.json({
+      //   success: true,
+      //   message: "HTML rendered successfully",
+      //   html: html,
+      //   images: images,
+      // });
     } catch (error) {
       console.error("Error uploading files:", error);
       res
@@ -229,17 +231,15 @@ router.post(
             </tr>
           `;
       };
+const createImageGrid = (images, altText) => {
+  if (!images || images.length === 0) return "";
+  return `
+    <div class="image-grid">
+      ${images.map((src) => `<img src="${src}" alt="${altText}">`).join("")}
+    </div>
+  `;
+};
 
-      const createImageGrid = (images, altText) => {
-        if (!images || images.length === 0) return "";
-        return `
-            <div class="image-grid">
-                ${images
-                  .map((src) => `<img src="${src}" alt="${altText}">`)
-                  .join("")}
-            </div>
-          `;
-      };
 
       const createSpeakerInfo = (speaker) => {
         if (!speaker.name) return "";
@@ -263,11 +263,11 @@ router.post(
         return `
             <div class="page">
               <div class="page-content">
-                <img src="${images.kjcmt_header}" alt="Header" class="header">
+                <img src="${images.fileUrls.kjcmt_header}" alt="Header" class="header">
                 <div class="content">
                   ${content}
                 </div>
-                <img src="${images.kjcmt_footer}" alt="Footer" class="footer">
+                <img src="${images.fileUrls.kjcmt_footer}" alt="Footer" class="footer">
               </div>
             </div>
           `;
@@ -308,76 +308,78 @@ router.post(
       };
 
       const additionalInfo = `
-          <table>
-            ${createSpeakerInfo({
-              name: data.speakerName,
-              phone: data.speakerPhone,
-              email: data.speakerEmail,
-              description: data.speakerDescription,
-            })}
-            ${createTableRow("Feedback", data.feedback)}
-            ${createTableRow("Program Outcome", data.outcome)}
-            ${
-              images.event_photos && images.event_photos.length > 0
-                ? `
-              <tr>
-                <th>Event Photographs</th>
-                <td>${createImageGrid(images.event_photos, "Event Photo")}</td>
-              </tr>
-            `
-                : ""
-            }
-            ${
-              images.event_photos &&
-              images.event_photos.length <= 3 &&
-              images.event_poster &&
-              images.event_poster.length > 0
-                ? `
-              <tr>
-                <th>Event Poster</th>
-                <td>${createImageGrid(images.event_poster, "Event Poster")}</td>
-              </tr>
-            `
-                : ""
-            }
-          </table>
-        `;
-
-      const attendanceList =
-        images.event_attendence_photos &&
-        images.event_attendence_photos.length > 0
-          ? `
-          <table>
-          ${
-            images.event_photos &&
-            images.event_photos.length > 3 &&
-            images.event_poster &&
-            images.event_poster.length > 0
-              ? `
-            <tr>
-              <th>Event Poster</th>
-              <td>${createImageGrid(images.event_poster, "Event Poster")}</td>
-            </tr>
-          `
-              : ""
-          }
-            <tr>
-              <th>Participants List</th>
-              <td>${createImageGrid(
-                images.event_attendence_photos,
-                "Attendance Sheet"
-              )}</td>
-            </tr>
-          </table>
-          <div class="name">
-            <p class="co">Name & Signature of Co-ordinator</p>
-            <p>Principal</p>
-          </div>
-          <div class="cmi">
-            Fr. Dr. Joshy George
-          </div>
+      <table>
+        ${createSpeakerInfo({
+          name: data.speakerName,
+          phone: data.speakerPhone,
+          email: data.speakerEmail,
+          description: data.speakerDescription,
+        })}
+        ${createTableRow("Feedback", data.feedback)}
+        ${createTableRow("Program Outcome", data.outcome)}
+        ${
+          images.fileUrls.event_photos && images.fileUrls.event_photos.length > 0
+            ? `
+          <tr>
+            <th>Event Photographs</th>
+            <td>${createImageGrid(images.fileUrls.event_photos, "Event Photo")}</td>
+          </tr>
         `
-          : "";
+            : ""
+        }
+        ${
+          images.fileUrls.event_photos &&
+          images.fileUrls.event_photos.length <= 3 &&
+          images.fileUrls.event_poster &&
+          images.fileUrls.event_poster.length > 0
+            ? `
+          <tr>
+            <th>Event Poster</th>
+            <td>${createImageGrid(images.fileUrls.event_poster, "Event Poster")}</td>
+          </tr>
+        `
+            : ""
+        }
+      </table>
+    `;
+    
+    const attendanceList =
+      images.fileUrls.event_attendence_photos &&
+      images.fileUrls.event_attendence_photos.length > 0
+        ? `
+        <table>
+        ${
+          images.fileUrls.event_photos &&
+          images.fileUrls.event_photos.length > 3 &&
+          images.fileUrls.event_poster &&
+          images.fileUrls.event_poster.length > 0
+            ? `
+          <tr>
+            <th>Event Poster</th>
+            <td>${createImageGrid(images.fileUrls.event_poster, "Event Poster")}</td>
+          </tr>
+        `
+            : ""
+        }
+          <tr>
+            <th>Participants List</th>
+            <td>${createImageGrid(
+              images.fileUrls.event_attendence_photos,
+              "Attendance Sheet"
+            )}</td>
+          </tr>
+        </table>
+        <div class="name">
+          <p class="co">Name & Signature of Co-ordinator</p>
+          <p>Principal</p>
+        </div>
+        <div class="cmi">
+          Fr. Dr. Joshy George
+        </div>
+      `
+        : "";
+    
+    // Modify the createPage function to use the correct image URLs
 
       return `
           <!DOCTYPE html>
