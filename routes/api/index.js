@@ -156,8 +156,7 @@ router.post(
       );
       const html = generateHTML(extractedData, images);
       // console.log(html);
-    
-      
+
       res.send(html);
       // res.json({
       //   success: true,
@@ -231,15 +230,14 @@ router.post(
             </tr>
           `;
       };
-const createImageGrid = (images, altText) => {
-  if (!images || images.length === 0) return "";
-  return `
+      const createImageGrid = (images, altText) => {
+        if (!images || images.length === 0) return "";
+        return `
     <div class="image-grid">
       ${images.map((src) => `<img src="${src}" alt="${altText}">`).join("")}
     </div>
   `;
-};
-
+      };
 
       const createSpeakerInfo = (speaker) => {
         if (!speaker.name) return "";
@@ -263,11 +261,11 @@ const createImageGrid = (images, altText) => {
         return `
             <div class="page">
               <div class="page-content">
-                <img src="${images.fileUrls.kjcmt_header}" alt="Header" class="header">
+                <img src="${images.kjcmt_header}" alt="Header" class="header">
                 <div class="content">
                   ${content}
                 </div>
-                <img src="${images.fileUrls.kjcmt_footer}" alt="Footer" class="footer">
+                <img src="${images.kjcmt_footer}" alt="Footer" class="footer">
               </div>
             </div>
           `;
@@ -318,11 +316,15 @@ const createImageGrid = (images, altText) => {
         ${createTableRow("Feedback", data.feedback)}
         ${createTableRow("Program Outcome", data.outcome)}
         ${
-          images.fileUrls.event_photos && images.fileUrls.event_photos.length > 0
+          images.fileUrls.event_photos &&
+          images.fileUrls.event_photos.length > 0
             ? `
           <tr>
             <th>Event Photographs</th>
-            <td>${createImageGrid(images.fileUrls.event_photos, "Event Photo")}</td>
+            <td>${createImageGrid(
+              images.fileUrls.event_photos,
+              "Event Photo"
+            )}</td>
           </tr>
         `
             : ""
@@ -335,18 +337,21 @@ const createImageGrid = (images, altText) => {
             ? `
           <tr>
             <th>Event Poster</th>
-            <td>${createImageGrid(images.fileUrls.event_poster, "Event Poster")}</td>
+            <td>${createImageGrid(
+              images.fileUrls.event_poster,
+              "Event Poster"
+            )}</td>
           </tr>
         `
             : ""
         }
       </table>
     `;
-    
-    const attendanceList =
-      images.fileUrls.event_attendence_photos &&
-      images.fileUrls.event_attendence_photos.length > 0
-        ? `
+
+      const attendanceList =
+        images.fileUrls.event_attendence_photos &&
+        images.fileUrls.event_attendence_photos.length > 0
+          ? `
         <table>
         ${
           images.fileUrls.event_photos &&
@@ -356,7 +361,10 @@ const createImageGrid = (images, altText) => {
             ? `
           <tr>
             <th>Event Poster</th>
-            <td>${createImageGrid(images.fileUrls.event_poster, "Event Poster")}</td>
+            <td>${createImageGrid(
+              images.fileUrls.event_poster,
+              "Event Poster"
+            )}</td>
           </tr>
         `
             : ""
@@ -377,9 +385,9 @@ const createImageGrid = (images, altText) => {
           Fr. Dr. Joshy George
         </div>
       `
-        : "";
-    
-    // Modify the createPage function to use the correct image URLs
+          : "";
+
+      // Modify the createPage function to use the correct image URLs
 
       return `
           <!DOCTYPE html>
