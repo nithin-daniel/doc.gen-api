@@ -206,8 +206,8 @@ router.post(
       const feedback = extractMultiline("Feedback");
     
       return {
-        eventName: extract("Event/Program Name"),
-        date: extract("Date"),
+        eventName: req.body.event_name,
+        date: req.body.event_date,
         time: extract("Time"),
         organizingDept: extract("Organizing Department/Club/Cell"),
         studentParticipants: extract("Total Student Participants"),
@@ -331,7 +331,7 @@ router.post(
     
     
       const createDescriptionPage = (description, data) => {
-        console.log("checking");
+        // console.log("checking");
         const hasSpeaker = data.speakerName || data.speakerPhone || data.speakerEmail || data.speakerDescription;
         
         if (description && data.description.split(/\s+/).length < 700 && hasSpeaker ) return `
