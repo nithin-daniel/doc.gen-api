@@ -44,7 +44,7 @@ const ReportData = new mongoose.Schema({
     type: String,
   },
   data: {
-    type: Object,
+    type: String,
   },
   created_at: {
     type: Date,
