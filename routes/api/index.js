@@ -115,8 +115,8 @@ router.post(
       await Promise.all(uploadPromises);
       const current_url = req.headers.host;
       const images = {
-        kjcmt_header: `http://${current_url}/event_photo/kjcmt-header.png`,
-        kjcmt_footer: `http://${current_url}/event_photo/kjcmt-footer.png`,
+        kjcmt_header: `https://${current_url}/event_photo/kjcmt-header.png`,
+        kjcmt_footer: `https://${current_url}/event_photo/kjcmt-footer.png`,
         fileUrls,
       };
       // res.json({
