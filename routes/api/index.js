@@ -61,11 +61,6 @@ router.post(
   ]),
   async (req, res) => {
     try {
-      const report_data = new Reports({
-        userId: req.user["email"],
-        data: req.body,
-      });
-      await report_data.save();
       const uploadPromises = [];
       const fileUrls = {
         event_photos: [],
@@ -163,6 +158,11 @@ router.post(
       // console.log(images);
 
       res.send(html);
+      const report_data = new Reports({
+        userId: req.user["email"],
+        data: html,
+      });
+      await report_data.save();
       // res.json({
       //   success: true,
       //   message: "HTML rendered successfully",
