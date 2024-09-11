@@ -297,15 +297,15 @@ function generateHTML(data, images) {
     `;
   };
 
-  const aliging = (data) => {
-    if (data.speakerDescription.length > 100) {
-      return `
-      <table>
-      ${createTableRow("Speaker Description", data.speakerDescription)}
-      </table>
-      `;
-    }
-  };
+  // const aliging = (data) => {
+  //   if (data.speakerDescription.length > 100) {
+  //     return `
+  //     <table>
+  //     ${createTableRow("Speaker Description", data.speakerDescription)}
+  //     </table>
+  //     `;
+  //   }
+  // };
   const createSpeakerInfo = (speaker) => {
     // console.log("Speaker data in createSpeakerInfo:", speaker);
     if (!speaker.name) return "";
@@ -343,17 +343,13 @@ function generateHTML(data, images) {
       data.speakerPhone ||
       data.speakerEmail ||
       data.speakerDescription;
-
-    if (!hasSpeaker && wordCount <= 700) {
+      
+    if (!hasSpeaker && wordCount > 600) {
       return createTableRow("Event Description", data.description);
     }
     return "";
   };
-  const isSpeakerPresent = (speaker) => {
-    return (
-      speaker.name || speaker.phone || speaker.email || speaker.description
-    );
-  };
+  
   const createPage = (content) => {
     if (!content.trim()) return ""; // Skip empty pages
     return `
@@ -396,43 +392,49 @@ ${eventdick(data)}
   `;
 
   const createDescriptionPage = (description, data) => {
-    // console.log("checking");
     const hasSpeaker =
       data.speakerName ||
       data.speakerPhone ||
       data.speakerEmail ||
       data.speakerDescription;
 
-    if (
-      description &&
-      description.split(/\s+/).length < 700 &&
-      hasSpeaker
-    )
-      return `
-    <div class="page">
-        <div class="page-content">
-          <img src="${images.kjcmt_header}" alt="Header" class="header">
-          <div class="content">
-          <table>
-          ${
-            speakerDescription && speakerDescription.length > 100
-              ? createTableRow("Speaker Description", speakerDescription)
-              : ""
-          }
-              ${createTableRow("Event Description", description)}
-            </table>
-            
-          </div>
-          <img src="${images.kjcmt_footer}" alt="Footer" class="footer">
-        </div>
-      </div> 
-    
-    `;
-    return `
-    
-    
-    `;
-  };
+    if (hasSpeaker && description.split(/\s+/).length < 300) {
+        return `
+        <div class="page">
+            <div class="page-content">
+              <img src="${images.kjcmt_header}" alt="Header" class="header">
+              <div class="content">
+              <table>
+              ${
+                data.speakerDescription && data.speakerDescription.length > 100
+                  ? createTableRow("Speaker Description", data.speakerDescription)
+                  : ""
+              }
+                  ${createTableRow("Event Description", description)}
+                </table>
+              </div>
+              <img src="${images.kjcmt_footer}" alt="Footer" class="footer">
+            </div>
+          </div> 
+        `;
+    } else if (description && description.split(/\s+/).length < 600) {
+        return `
+        <div class="page">
+            <div class="page-content">
+              <img src="${images.kjcmt_header}" alt="Header" class="header">
+              <div class="content">
+              <table>
+                  ${createTableRow("Event Description", description)}
+                </table>
+              </div>
+              <img src="${images.kjcmt_footer}" alt="Footer" class="footer">
+            </div>
+          </div> 
+        `;
+    } else {
+        return ``;
+    }
+};
 
   const additionalInfo = `
     <table>
@@ -847,11 +849,11 @@ ${eventdick(data)}
                 width: 30%;
             }
             .header, .footer {
-                width: calc(100% - 4cm);
+                width: calc(100% - 2cm);
                 height: auto;
                 position: absolute;
-                left: 2cm;
-                right: 2cm;
+                left: 1cm;
+                right: 1cm;
             }
             .header {
                 top: 1cm;
